@@ -15,8 +15,8 @@
 
 <br>
 <p align="center">
-<a href="">📚 文档</a> |
-<a href="">🤹‍♂️ 模板</a>
+<a href="https://wcferry.netlify.app/">📚 文档</a> |
+<a href="https://wcferry.netlify.app/">🤹‍♂️ 模板</a>
 </p>
 <br>
 
