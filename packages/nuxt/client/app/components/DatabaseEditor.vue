@@ -7,11 +7,12 @@ import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 
 import type {
   CompletionService,
-  ICompletionItem } from 'monaco-sql-languages'
+  ICompletionItem,
+} from 'monaco-sql-languages'
 import {
-  setupLanguageFeatures,
-  LanguageIdEnum,
   EntityContextType,
+  LanguageIdEnum,
+  setupLanguageFeatures,
 } from 'monaco-sql-languages'
 import type { DatabaseListItem } from '~~/types/database'
 import type { MonacoEditor } from '#components'
@@ -46,7 +47,7 @@ const completionService: CompletionService = function (
       label: kw,
       kind: languages.CompletionItemKind.Keyword,
       detail: 'keyword',
-      sortText: '2' + kw,
+      sortText: `2${kw}`,
     }))
 
     let syntaxCompletionItems: ICompletionItem[] = []
@@ -58,7 +59,7 @@ const completionService: CompletionService = function (
           label: t,
           kind: languages.CompletionItemKind.Class,
           detail: 'table',
-          sortText: '1' + t,
+          sortText: `1${t}`,
         }))
         syntaxCompletionItems = [...syntaxCompletionItems, ...tableCompletions]
       }
@@ -73,7 +74,7 @@ const completionService: CompletionService = function (
             label: col,
             kind: languages.CompletionItemKind.Field,
             detail: 'column',
-            sortText: '0' + col,
+            sortText: `0${col}`,
           }
         })
         syntaxCompletionItems = [...syntaxCompletionItems, ...columnCompletions]
@@ -94,7 +95,8 @@ setupLanguageFeatures(LanguageIdEnum.MYSQL, {
 
 function run() {
   sql.value = code.value
-  if (!editor.value) return
+  if (!editor.value)
+    return
   const selection = editor.value.getSelection()
   if (selection) {
     const selectedText = editor.value?.getModel()?.getValueInRange(selection)

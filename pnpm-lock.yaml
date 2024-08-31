@@ -176,7 +176,27 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.5.1)(terser@5.31.6)
 
-  packages/nuxt/client: {}
+  packages/nuxt/client:
+    dependencies:
+      '@xterm/addon-fit':
+        specifier: ^0.10.0
+        version: 0.10.0(@xterm/xterm@5.5.0)
+      '@xterm/xterm':
+        specifier: ^5.5.0
+        version: 5.5.0
+      ag-grid-vue3:
+        specifier: ^32.1.0
+        version: 32.1.0(typescript@5.5.4)
+      monaco-editor:
+        specifier: ^0.51.0
+        version: 0.51.0
+      monaco-sql-languages:
+        specifier: ^0.12.2
+        version: 0.12.2(antlr4ng-cli@1.0.7)(monaco-editor@0.51.0)
+    devDependencies:
+      nuxt-monaco-editor:
+        specifier: ^1.2.9
+        version: 1.2.9(magicast@0.3.5)(monaco-editor@0.51.0)(rollup@3.29.4)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
 
   packages/nuxt/playground:
     dependencies:
@@ -2393,6 +2413,14 @@ packages:
   '@webassemblyjs/wast-printer@1.12.1':
     resolution: {integrity: sha512-+X4WAlOisVWQMikjbcvY2e0rwPsKQ9F688lksZhBcPycBBuii3O7m8FACbDMWDojpAqvjIncrG8J0XHKyQfVeA==}
 
+  '@xterm/addon-fit@0.10.0':
+    resolution: {integrity: sha512-UFYkDm4HUahf2lnEyHvio51TNGiLK66mqP2JoATy7hRZeXaGMRDr00JiSF7m63vR5WKATF605yEggJKsw0JpMQ==}
+    peerDependencies:
+      '@xterm/xterm': ^5.0.0
+
+  '@xterm/xterm@5.5.0':
+    resolution: {integrity: sha512-hqJHYaQb5OptNunnyAnkHyM8aCjZ1MEIDTQu1iIbbTD/xops91NB5yq1ZK/dC2JDbVWtF23zUtl9JE2NqwT87A==}
+
   '@xtuc/ieee754@1.2.0':
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
 
@@ -2424,6 +2452,15 @@ packages:
     resolution: {integrity: sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  ag-charts-types@10.1.0:
+    resolution: {integrity: sha512-pk9ft8hbgTXJ/thI/SEUR1BoauNplYExpcHh7tMOqVikoDsta1O15TB1ZL4XWnl4TPIzROBmONKsz7d8a2HBuQ==}
+
+  ag-grid-community@32.1.0:
+    resolution: {integrity: sha512-RVvkjRH61nuCXwIqTKQPqNbKR+8cGBKw7S1qmmMXsy0pCBAJaQn4kL3v31hKHxDtV4bPscBXLFKGnKzHuss0GQ==}
+
+  ag-grid-vue3@32.1.0:
+    resolution: {integrity: sha512-hT6vJeI7zD4XyM9d9sa6MP1U6kAlTbtmo25LYR3cAEK1OqqenZqtddgAefSLF6bmsvotcSmkJWAalEGP8A5GwQ==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -2468,6 +2505,18 @@ packages:
   ansi-styles@6.2.1:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
+
+  antlr4-c3@3.3.7:
+    resolution: {integrity: sha512-F3ndE38wwA6z6AjUbL3heSdEGl4TxulGDPf9xB0/IY4dbRHWBh6XNaqFwur8vHKQk9FS5yNABHeg2wqlqIYO0w==}
+
+  antlr4ng-cli@1.0.7:
+    resolution: {integrity: sha512-qN2FsDBmLvsQcA5CWTrPz8I8gNXeS1fgXBBhI78VyxBSBV/EJgqy8ks6IDTC9jyugpl40csCQ4sL5K4i2YZ/2w==}
+    hasBin: true
+
+  antlr4ng@2.0.11:
+    resolution: {integrity: sha512-9jM91VVtHSqHkAHQsXHaoaiewFETMvUTI1/tXvwTiFw4f7zke3IGlwEyoKN9NS0FqIwDKFvUNW2e1cKPniTkVQ==}
+    peerDependencies:
+      antlr4ng-cli: 1.0.7
 
   any-base@1.1.0:
     resolution: {integrity: sha512-uMgjozySS8adZZYePpaWs8cxB9/kdzmpX6SgJZ+wbz1K5eYk5QMYDVJaZKhxyIHUdnnJkfR7SVgStgH7LkGUyg==}
@@ -3176,6 +3225,9 @@ packages:
   dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
+
+  dt-sql-parser@4.0.2:
+    resolution: {integrity: sha512-8D/kfYLW+wgz7Cwf5K+OCtex7QHiCyIuI18pw0a5vjSXRKCpfQqNQeG7tU5vp4D0RQEZJiMBuKJPBYwoqWxoAA==}
 
   ducks@1.0.2:
     resolution: {integrity: sha512-CDLrkP4g5E3IG0kAPrlVgavrgtNwn528DsXFZq3dSOx+DaS5nnoH9eEOXJ1emXtPVwiVF50pOYvWGF42miaJgg==}
@@ -4592,6 +4644,14 @@ packages:
   mlly@1.7.1:
     resolution: {integrity: sha512-rrVRZRELyQzrIUAVMHxP97kv+G786pHmOKzuFII8zDYahFBS7qnHh2AlYSl1GAHhaMPCz6/oHjVMcfFYgFYHgA==}
 
+  monaco-editor@0.51.0:
+    resolution: {integrity: sha512-xaGwVV1fq343cM7aOYB6lVE4Ugf0UyimdD/x5PWcWBMKENwectaEu77FAN7c5sFiyumqeJdX1RPTh1ocioyDjw==}
+
+  monaco-sql-languages@0.12.2:
+    resolution: {integrity: sha512-FNo/9FLF9JqYmdSBjQtnCCxg+Bo9hGCRDIatEX+0XUB6zvZSis7JJX7yq64kENqL7KwmX4N2ILkhbBxX5F9wyw==}
+    peerDependencies:
+      monaco-editor: '>=0.31.0'
+
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -4735,6 +4795,11 @@ packages:
     resolution: {integrity: sha512-rhUfFCtIH8IxhfibVd26uGrC0ojUijGoU3bAhPQHrkl7mFlK+g+XeIttdsI8YAC7s/wPishrTpE9z1UssHY6eA==}
     engines: {node: ^16.10.0 || >=18.0.0}
     hasBin: true
+
+  nuxt-monaco-editor@1.2.9:
+    resolution: {integrity: sha512-O51sng1MxDAmmm1drOvlUyu6sMdRQtC7ZeSU/r+Hp8KWDDi0JWblPwMOJ+oxMDBnvWw1mOXEhaUBlLjUTEeU/Q==}
+    peerDependencies:
+      monaco-editor: '*'
 
   nuxt@3.13.0:
     resolution: {integrity: sha512-NZlPGlMav18KXWiOmTguQtH5lcrwooPniWXM3Ca4c9spsMRu3wyWLlN8wiI/cK+lEu3rQyKCGSA75nFVK4Ew3w==}
@@ -6128,6 +6193,12 @@ packages:
     peerDependenciesMeta:
       '@nuxt/kit':
         optional: true
+
+  vite-plugin-static-copy@1.0.6:
+    resolution: {integrity: sha512-3uSvsMwDVFZRitqoWHj0t4137Kz7UynnJeq1EZlRW7e25h2068fyIZX4ORCCOAkfp1FklGxJNVJBkBOD+PZIew==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    peerDependencies:
+      vite: ^5.0.0
 
   vite-plugin-vue-inspector@5.1.3:
     resolution: {integrity: sha512-pMrseXIDP1Gb38mOevY+BvtNGNqiqmqa2pKB99lnLsADQww9w9xMbAfT4GB6RUoaOkSPrtlXqpq2Fq+Dj2AgFg==}
@@ -9005,6 +9076,12 @@ snapshots:
       '@webassemblyjs/ast': 1.12.1
       '@xtuc/long': 4.2.2
 
+  '@xterm/addon-fit@0.10.0(@xterm/xterm@5.5.0)':
+    dependencies:
+      '@xterm/xterm': 5.5.0
+
+  '@xterm/xterm@5.5.0': {}
+
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
@@ -9033,6 +9110,19 @@ snapshots:
       acorn: 8.12.1
 
   acorn@8.12.1: {}
+
+  ag-charts-types@10.1.0: {}
+
+  ag-grid-community@32.1.0:
+    dependencies:
+      ag-charts-types: 10.1.0
+
+  ag-grid-vue3@32.1.0(typescript@5.5.4):
+    dependencies:
+      ag-grid-community: 32.1.0
+      vue: 3.4.38(typescript@5.5.4)
+    transitivePeerDependencies:
+      - typescript
 
   agent-base@6.0.2:
     dependencies:
@@ -9074,6 +9164,18 @@ snapshots:
       color-convert: 2.0.1
 
   ansi-styles@6.2.1: {}
+
+  antlr4-c3@3.3.7(antlr4ng-cli@1.0.7):
+    dependencies:
+      antlr4ng: 2.0.11(antlr4ng-cli@1.0.7)
+    transitivePeerDependencies:
+      - antlr4ng-cli
+
+  antlr4ng-cli@1.0.7: {}
+
+  antlr4ng@2.0.11(antlr4ng-cli@1.0.7):
+    dependencies:
+      antlr4ng-cli: 1.0.7
 
   any-base@1.1.0: {}
 
@@ -9782,6 +9884,13 @@ snapshots:
       type-fest: 3.13.1
 
   dotenv@16.4.5: {}
+
+  dt-sql-parser@4.0.2(antlr4ng-cli@1.0.7):
+    dependencies:
+      antlr4-c3: 3.3.7(antlr4ng-cli@1.0.7)
+      antlr4ng: 2.0.11(antlr4ng-cli@1.0.7)
+    transitivePeerDependencies:
+      - antlr4ng-cli
 
   ducks@1.0.2(redux-observable@2.0.0(redux@4.2.1))(redux@4.2.1):
     dependencies:
@@ -11397,6 +11506,15 @@ snapshots:
       pkg-types: 1.2.0
       ufo: 1.5.4
 
+  monaco-editor@0.51.0: {}
+
+  monaco-sql-languages@0.12.2(antlr4ng-cli@1.0.7)(monaco-editor@0.51.0):
+    dependencies:
+      dt-sql-parser: 4.0.2(antlr4ng-cli@1.0.7)
+      monaco-editor: 0.51.0
+    transitivePeerDependencies:
+      - antlr4ng-cli
+
   mri@1.2.0: {}
 
   mrmime@2.0.0: {}
@@ -11598,6 +11716,18 @@ snapshots:
   nuxi@3.13.1:
     optionalDependencies:
       fsevents: 2.3.3
+
+  nuxt-monaco-editor@1.2.9(magicast@0.3.5)(monaco-editor@0.51.0)(rollup@3.29.4)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6)):
+    dependencies:
+      '@nuxt/kit': 3.13.0(magicast@0.3.5)(rollup@3.29.4)
+      defu: 6.1.4
+      monaco-editor: 0.51.0
+      vite-plugin-static-copy: 1.0.6(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
+    transitivePeerDependencies:
+      - magicast
+      - rollup
+      - supports-color
+      - vite
 
   nuxt@3.13.0(@parcel/watcher@2.4.1)(@types/node@22.5.1)(eslint@9.9.1(jiti@1.21.6))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.21.2)(terser@5.31.6)(typescript@5.5.4)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))(xml2js@0.6.2):
     dependencies:
@@ -13169,6 +13299,14 @@ snapshots:
     transitivePeerDependencies:
       - rollup
       - supports-color
+
+  vite-plugin-static-copy@1.0.6(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6)):
+    dependencies:
+      chokidar: 3.6.0
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      picocolors: 1.0.1
+      vite: 5.4.2(@types/node@22.5.1)(terser@5.31.6)
 
   vite-plugin-vue-inspector@5.1.3(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6)):
     dependencies:

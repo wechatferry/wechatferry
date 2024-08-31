@@ -16,7 +16,7 @@ const isDark = useDark()
 </script>
 
 <template>
-  <ag-grid-vue
+  <AgGridVue
     class="h-full"
     style="--ag-wrapper-border-radius: 0px;--ag-header-background-color: transparent ;--ag-background-color: transparent ;"
     :loading="status === 'pending'"

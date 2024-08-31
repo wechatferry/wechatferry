@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, expect, it } from 'vitest'
 import { WechatferryAgent } from '../packages/agent/src'
 
 const wcf = new WechatferryAgent()

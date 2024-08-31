@@ -17,7 +17,7 @@ const skills = useServerSkills()
         text-sm
         op25"
     >
-      {{ index+1 }}
+      {{ index + 1 }}
     </div>
     <NBadge n="orange">
       {{ item.name }}

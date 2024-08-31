@@ -43,5 +43,5 @@ export function setupServerSkillsRPC({ nuxt, refresh }: NuxtDevtoolsServerContex
     getServerSkills() {
       return scan()
     },
-  }satisfies Partial<ServerFunctions>
+  } satisfies Partial<ServerFunctions>
 }

@@ -6,6 +6,8 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/devtools-ui-kit',
+    '@unocss/nuxt',
+    'nuxt-monaco-editor',
   ],
 
   nitro: {
