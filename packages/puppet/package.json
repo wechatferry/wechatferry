@@ -1,7 +1,7 @@
 {
   "name": "@wechatferry/puppet",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "wcferry puppet for wechaty",
   "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@wechatferry/agent": "workspace:*",
+    "@wechatferry/core": "workspace:*",
     "file-box": "^1.4.15",
     "knex": "^3.1.0",
     "unstorage": "^1.10.2",

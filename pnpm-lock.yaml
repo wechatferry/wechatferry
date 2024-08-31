@@ -239,6 +239,9 @@ importers:
       '@wechatferry/agent':
         specifier: workspace:*
         version: link:../agent
+      '@wechatferry/core':
+        specifier: workspace:*
+        version: link:../core
       file-box:
         specifier: ^1.4.15
         version: 1.4.15
