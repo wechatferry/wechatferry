@@ -1,0 +1,52 @@
+{
+  "name": "@wechatferry/puppet",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "A node impl of wcferry client",
+  "author": "mrrhq <sanhua@himrr.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/wechatferry/wechatferry#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechatferry/wechatferry"
+  },
+  "keywords": [
+    "wechat",
+    "wcferry",
+    "robot"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "dependencies": {
+    "@wechatferry/agent": "workspace:*",
+    "file-box": "^1.4.15",
+    "knex": "^3.1.0",
+    "unstorage": "^1.10.2",
+    "wechaty-puppet": "^1.20.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/xml2js": "^0.4.14"
+  }
+}

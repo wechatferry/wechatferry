@@ -1,0 +1,13 @@
+.cache
+.DS_Store
+.idea
+.nuxt
+.output
+.temp
+*.local
+*.log
+*.vsix
+coverage
+dist
+node_modules
+.eslintcache

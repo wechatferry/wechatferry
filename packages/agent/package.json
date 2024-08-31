@@ -1,0 +1,48 @@
+{
+  "name": "@wechatferry/agent",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "A node impl of wcferry client",
+  "author": "mrrhq <sanhua@himrr.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/wechatferry/wechatferry#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechatferry/wechatferry"
+  },
+  "keywords": [
+    "wechat",
+    "wcferry",
+    "robot"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "dependencies": {
+    "@wechatferry/core": "workspace:*",
+    "knex": "^3.1.0"
+  }
+}
