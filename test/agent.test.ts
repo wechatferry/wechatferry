@@ -1,4 +1,5 @@
-import { beforeAll, expect, it } from 'vitest'
+import { afterAll, beforeAll, expect, it } from 'vitest'
+import { FileBox } from 'file-box'
 import { WechatferryAgent } from '../packages/agent/src'
 
 const wcf = new WechatferryAgent()
@@ -33,4 +34,13 @@ it.skip('history', () => {
 it.skip('say', () => {
   const id = wcf.wcf.getSelfWxid()
   wcf.sendText(id, 'hello')
+})
+
+it('image', () => {
+  const id = wcf.wcf.getSelfWxid()
+  wcf.sendImage(id, FileBox.fromBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj2D751n8AB00DJKfruzgAAAAASUVORK5CYII=', 'test.png'))
+})
+
+afterAll(() => {
+  wcf.stop()
 })

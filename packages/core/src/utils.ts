@@ -3,6 +3,7 @@ import { Buffer } from 'node:buffer'
 import { createConsola } from 'consola'
 import type { FileBoxInterface } from 'file-box'
 import { join } from 'pathe'
+import { ensureDir, existsSync } from 'fs-extra'
 
 export const logger = createConsola({
   defaults: {
@@ -11,7 +12,11 @@ export const logger = createConsola({
 })
 
 export async function saveFileBox(file: FileBoxInterface, dir = tmpdir()) {
-  const filePath = join(dir, 'wechatferry', `${new Date().getTime()}-${file.name}`)
+  const dirPath = join(dir, 'wechatferry')
+  const filePath = join(dirPath, `${new Date().getTime()}-${file.name}`)
+  if (!existsSync(dirPath)) {
+    await ensureDir(dirPath)
+  }
   await file.toFile(filePath)
   return filePath
 }
