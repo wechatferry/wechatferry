@@ -11,3 +11,5 @@ coverage
 dist
 node_modules
 .eslintcache
+docs/.vitepress/dist
+docs/.vitepress/cache

@@ -1,0 +1,18 @@
+{
+  "name": "docs",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "@iconify-json/carbon": "catalog:",
+    "@iconify-json/logos": "^1.1.44",
+    "unplugin-vue-components": "^0.27.4",
+    "vitepress": "catalog:",
+    "vitepress-plugin-group-icons": "catalog:"
+  }
+}
