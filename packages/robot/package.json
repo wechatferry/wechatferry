@@ -1,0 +1,22 @@
+{
+  "name": "@wechatferry/robot",
+  "type": "module",
+  "version": "0.0.0",
+  "main": "./nuxt.config.ts",
+  "scripts": {
+    "dev": "nuxi dev",
+    "prepare": "nuxt prepare",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "bullmq": "^5.12.10",
+    "openai": "^4.56.0"
+  },
+  "devDependencies": {
+    "@wechatferry/nuxt": "workspace:*",
+    "nuxt": "catalog:"
+  }
+}

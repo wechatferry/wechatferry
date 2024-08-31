@@ -19,8 +19,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs"
     }
   },
   "main": "./dist/index.mjs",
@@ -40,6 +39,7 @@
   },
   "dependencies": {
     "@wechatferry/agent": "workspace:*",
+    "@wechatferry/core": "workspace:*",
     "file-box": "^1.4.15",
     "knex": "^3.1.0",
     "unstorage": "^1.10.2",
