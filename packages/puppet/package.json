@@ -2,7 +2,7 @@
   "name": "@wechatferry/puppet",
   "type": "module",
   "version": "0.0.0",
-  "description": "A node impl of wcferry client",
+  "description": "wcferry puppet for wechaty",
   "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
   "homepage": "https://github.com/wechatferry/wechatferry#readme",

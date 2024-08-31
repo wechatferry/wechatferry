@@ -2,6 +2,23 @@
   "name": "@wechatferry/robot",
   "type": "module",
   "version": "0.0.0",
+  "description": "nuxt layers for wechatferry",
+  "author": "mrrhq <sanhua@himrr.com>",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/mrrhq",
+  "homepage": "https://github.com/wechatferry/wechatferry#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechatferry/wechatferry"
+  },
+  "bugs": "https://github.com/wechatferry/wechatferry/issues",
+  "keywords": [
+    "wechat",
+    "wcferry",
+    "robot",
+    "nuxt",
+    "nuxt-layer"
+  ],
   "main": "./nuxt.config.ts",
   "files": [
     "app",

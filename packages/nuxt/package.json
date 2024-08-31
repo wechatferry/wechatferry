@@ -2,8 +2,23 @@
   "name": "@wechatferry/nuxt",
   "type": "module",
   "version": "1.0.0",
-  "description": "My new Nuxt module",
+  "description": "nuxt module for wechatferry",
+  "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
+  "funding": "https://github.com/sponsors/mrrhq",
+  "homepage": "https://github.com/wechatferry/wechatferry#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechatferry/wechatferry"
+  },
+  "bugs": "https://github.com/wechatferry/wechatferry/issues",
+  "keywords": [
+    "wechat",
+    "wcferry",
+    "robot",
+    "nuxt",
+    "nuxt-module"
+  ],
   "exports": {
     ".": {
       "types": "./dist/types.d.ts",
