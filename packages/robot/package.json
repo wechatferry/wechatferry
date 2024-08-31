@@ -42,11 +42,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@wechatferry/nuxt": "workspace:*",
     "bullmq": "^5.12.10",
     "openai": "^4.56.0"
   },
   "devDependencies": {
-    "@wechatferry/nuxt": "workspace:*",
     "nuxt": "catalog:"
   }
 }
