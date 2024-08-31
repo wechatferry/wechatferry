@@ -23,11 +23,11 @@ export function parseDbField(type: number, content: Uint8Array) {
       return Number.parseInt(uint8Array2str(content), 10)
     case 2:
       return Number.parseFloat(uint8Array2str(content))
-    case 3:
     case 4:
       return Buffer.from(content)
     case 5:
       return undefined
+    case 3:
     default:
       return uint8Array2str(content)
   }

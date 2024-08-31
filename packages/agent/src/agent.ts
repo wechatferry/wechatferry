@@ -157,7 +157,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     return list.map((v) => {
       const RoomData = v.RoomData
       const data = decodeRoomData(RoomData)
-      const memberIdList = data.members?.map((v: any) => v.wxID) as string[]
+      const memberIdList = data.members?.map(m => m.wxid) ?? []
       return {
         ...v,
         ownerUserName: v.Reserved2,
@@ -312,7 +312,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     return result.map((v) => {
       return {
         ...v,
-        tags: v.LabelIDList?.split(',').filter(v => v) ?? [],
+        tags: v?.LabelIDList?.split(',').filter(v => v) ?? [],
       }
     })
   }

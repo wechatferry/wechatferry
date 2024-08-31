@@ -6,7 +6,7 @@ export function useSiliconflow() {
     siliconflow = $fetch.create({
       baseURL: 'https://api.siliconflow.cn/v1',
       headers: {
-        'Authorization': `Bearer ${siliconflowConfig.apiKey}`,
+        'Authorization': `Bearer ${siliconflowConfig?.apiKey}`,
         'Content-Type': 'application/json',
       },
       timeout: 100 * 1000,

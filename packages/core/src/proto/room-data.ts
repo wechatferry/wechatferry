@@ -12,9 +12,8 @@ export class RoomData extends pb_1.Message {
         field_3?: number;
         field_4?: number;
         room_capacity?: number;
-        field_6?: number;
-        field_7?: number;
-        field_8?: number;
+        field_7?: string;
+        field_8?: string;
     }) {
         super();
         pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [1], this.#one_of_decls);
@@ -33,9 +32,6 @@ export class RoomData extends pb_1.Message {
             }
             if ("room_capacity" in data && data.room_capacity != undefined) {
                 this.room_capacity = data.room_capacity;
-            }
-            if ("field_6" in data && data.field_6 != undefined) {
-                this.field_6 = data.field_6;
             }
             if ("field_7" in data && data.field_7 != undefined) {
                 this.field_7 = data.field_7;
@@ -75,22 +71,16 @@ export class RoomData extends pb_1.Message {
     set room_capacity(value: number) {
         pb_1.Message.setField(this, 5, value);
     }
-    get field_6() {
-        return pb_1.Message.getFieldWithDefault(this, 6, 0) as number;
-    }
-    set field_6(value: number) {
-        pb_1.Message.setField(this, 6, value);
-    }
     get field_7() {
-        return pb_1.Message.getFieldWithDefault(this, 7, 0) as number;
+        return pb_1.Message.getFieldWithDefault(this, 7, "0") as string;
     }
-    set field_7(value: number) {
+    set field_7(value: string) {
         pb_1.Message.setField(this, 7, value);
     }
     get field_8() {
-        return pb_1.Message.getFieldWithDefault(this, 8, 0) as number;
+        return pb_1.Message.getFieldWithDefault(this, 8, "0") as string;
     }
-    set field_8(value: number) {
+    set field_8(value: string) {
         pb_1.Message.setField(this, 8, value);
     }
     static fromObject(data: {
@@ -99,9 +89,8 @@ export class RoomData extends pb_1.Message {
         field_3?: number;
         field_4?: number;
         room_capacity?: number;
-        field_6?: number;
-        field_7?: number;
-        field_8?: number;
+        field_7?: string;
+        field_8?: string;
     }): RoomData {
         const message = new RoomData({});
         if (data.members != null) {
@@ -119,9 +108,6 @@ export class RoomData extends pb_1.Message {
         if (data.room_capacity != null) {
             message.room_capacity = data.room_capacity;
         }
-        if (data.field_6 != null) {
-            message.field_6 = data.field_6;
-        }
         if (data.field_7 != null) {
             message.field_7 = data.field_7;
         }
@@ -137,9 +123,8 @@ export class RoomData extends pb_1.Message {
             field_3?: number;
             field_4?: number;
             room_capacity?: number;
-            field_6?: number;
-            field_7?: number;
-            field_8?: number;
+            field_7?: string;
+            field_8?: string;
         } = {};
         if (this.members != null) {
             data.members = this.members.map((item: RoomData.RoomMember) => item.toObject());
@@ -155,9 +140,6 @@ export class RoomData extends pb_1.Message {
         }
         if (this.room_capacity != null) {
             data.room_capacity = this.room_capacity;
-        }
-        if (this.field_6 != null) {
-            data.field_6 = this.field_6;
         }
         if (this.field_7 != null) {
             data.field_7 = this.field_7;
@@ -181,12 +163,10 @@ export class RoomData extends pb_1.Message {
             writer.writeInt32(4, this.field_4);
         if (this.room_capacity != 0)
             writer.writeInt32(5, this.room_capacity);
-        if (this.field_6 != 0)
-            writer.writeInt32(6, this.field_6);
-        if (this.field_7 != 0)
-            writer.writeInt64(7, this.field_7);
-        if (this.field_8 != 0)
-            writer.writeInt64(8, this.field_8);
+        if (this.field_7 != "0")
+            writer.writeInt64String(7, this.field_7);
+        if (this.field_8 != "0")
+            writer.writeInt64String(8, this.field_8);
         if (!w)
             return writer.getResultBuffer();
     }
@@ -211,14 +191,11 @@ export class RoomData extends pb_1.Message {
                 case 5:
                     message.room_capacity = reader.readInt32();
                     break;
-                case 6:
-                    message.field_6 = reader.readInt32();
-                    break;
                 case 7:
-                    message.field_7 = reader.readInt64();
+                    message.field_7 = reader.readInt64String();
                     break;
                 case 8:
-                    message.field_8 = reader.readInt64();
+                    message.field_8 = reader.readInt64String();
                     break;
                 default: reader.skipField();
             }
