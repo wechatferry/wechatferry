@@ -3,10 +3,23 @@
   "type": "module",
   "version": "0.0.0",
   "main": "./nuxt.config.ts",
+  "files": [
+    "app",
+    "app.config.ts",
+    "app.vue",
+    "assets",
+    "components",
+    "composables",
+    "layouts",
+    "nuxt.config.ts",
+    "nuxt.schema.ts",
+    "plugins",
+    "server",
+    "tokens.config.ts"
+  ],
   "scripts": {
     "dev": "nuxi dev",
-    "prepare": "nuxt prepare",
-    "build": "nuxt build",
+    "dev:build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "lint": "eslint ."

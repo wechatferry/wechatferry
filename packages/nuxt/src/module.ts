@@ -1,6 +1,9 @@
 import { addServerScanDir, createResolver, defineNuxtModule } from '@nuxt/kit'
+import { onDevToolsInitialized } from '@nuxt/devtools-kit'
 import type { ScannedWcferrySkill } from '../types'
 import { setupVirtual } from './virtual'
+import { setupDevToolsUI } from './devtools'
+import { setupRPC } from './server-rpc'
 
 export interface ModuleOptions {
   debug: boolean
@@ -24,6 +27,14 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.hook('nitro:init', (_) => {
       setupVirtual(nuxt, _)
     })
+
+    if (options.debug || nuxt.options.dev) {
+      addServerScanDir(resolver.resolve('./runtime/nitro'))
+      setupDevToolsUI(options, resolver.resolve)
+      onDevToolsInitialized(() => {
+        setupRPC(nuxt, options)
+      })
+    }
   },
 })
 
