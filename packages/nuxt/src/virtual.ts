@@ -2,7 +2,6 @@ import type { Nitro } from 'nitropack'
 import type { Nuxt } from 'nuxt/schema'
 import { basename, extname, join, relative, resolve } from 'pathe'
 import { camelCase } from 'scule'
-import { onDevToolsInitialized } from '@nuxt/devtools-kit'
 import fb from 'fast-glob'
 
 interface FileInfo { path: string, fullPath: string }

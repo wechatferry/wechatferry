@@ -1,9 +1,4 @@
 import { addServerScanDir, createResolver, defineNuxtModule } from '@nuxt/kit'
-import fb from 'fast-glob'
-import { basename, extname, join, relative, resolve } from 'pathe'
-import { camelCase } from 'scule'
-import { onDevToolsInitialized } from '@nuxt/devtools-kit'
-import type { Nitro } from 'nitropack'
 import type { ScannedWcferrySkill } from '../types'
 import { setupVirtual } from './virtual'
 

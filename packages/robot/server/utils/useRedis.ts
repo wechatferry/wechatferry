@@ -1,6 +1,6 @@
-import IORedis from "ioredis";
+import IORedis from 'ioredis'
 
-let redis: IORedis;
+let redis: IORedis
 
 export function useRedis() {
   if (!redis) {
@@ -8,8 +8,8 @@ export function useRedis() {
     redis = new IORedis({
       ...redisConfig,
       maxRetriesPerRequest: null,
-    });
+    })
   }
 
-  return redis;
+  return redis
 }
