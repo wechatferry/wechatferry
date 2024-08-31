@@ -34,14 +34,13 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
   stop(error?: any) {
     this.stopTimer()
+    if (this.isLoggedIn) {
+      this.emit('logout')
+    }
     this.wcf.stop()
 
     if (error) {
       this.emit('error', error)
-    }
-
-    if (this.isLoggedIn) {
-      this.emit('logout')
     }
   }
 
