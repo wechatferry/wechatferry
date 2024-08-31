@@ -1,9 +1,10 @@
 import { tmpdir } from 'node:os'
 import { Buffer } from 'node:buffer'
+import { existsSync } from 'node:fs'
 import { createConsola } from 'consola'
 import type { FileBoxInterface } from 'file-box'
 import { join } from 'pathe'
-import { ensureDir, existsSync } from 'fs-extra'
+import { ensureDir } from 'fs-extra'
 
 export const logger = createConsola({
   defaults: {
