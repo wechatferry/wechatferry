@@ -1,12 +1,32 @@
-import { afterAll, beforeAll, expect, it } from 'vitest'
+import { expect, it } from 'vitest'
 import { FileBox } from 'file-box'
 import { WechatferryAgent } from '../packages/agent/src'
+import { Wechatferry } from '../packages/wechatferry/src'
 
-const wcf = new WechatferryAgent()
+const core = new Proxy(new Wechatferry(), {
+  get(target, prop, receiver) {
+    if (typeof prop === 'string') {
+      if (prop !== 'send' && prop.startsWith('send')) {
+        return (...args: any[]) => {
+          console.error(JSON.stringify(args))
+        }
+      }
 
-beforeAll(() => {
-  wcf.start()
+      if (prop === 'getSelfWxid') {
+        return () => 'filehelper'
+      }
+    }
+    return Reflect.get(target, prop, receiver)
+  },
 })
+
+const wcf = new WechatferryAgent({
+  wcf: core,
+})
+
+// beforeAll(() => {
+//   wcf.start()
+// })
 
 it.skip('contacts', () => {
   const contactList = wcf.getContactList()
@@ -31,7 +51,7 @@ it.skip('history', () => {
   expect(talkerWxid).toBe(id)
 })
 
-it.skip('say', () => {
+it('say', () => {
   const id = wcf.wcf.getSelfWxid()
   wcf.sendText(id, 'hello')
 })
@@ -41,6 +61,15 @@ it('image', () => {
   wcf.sendImage(id, FileBox.fromBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj2D751n8AB00DJKfruzgAAAAASUVORK5CYII=', 'test.png'))
 })
 
-afterAll(() => {
-  wcf.stop()
-})
+it('safe', async () => {
+  wcf.safe = true
+  wcf.sendText('filehelper', 'hello1')
+  await wcf.sendText('filehelper', 'hello2')
+  wcf.sendText('user1', 'hello3')
+  await wcf.sendText('user1', 'hello4')
+  wcf.safe = false
+}, { timeout: 1000 * 60 * 2 })
+
+// afterAll(() => {
+//   wcf.stop()
+// })

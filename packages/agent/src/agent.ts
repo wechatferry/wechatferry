@@ -1,8 +1,11 @@
 import EventEmitter from 'node:events'
 import process from 'node:process'
+import { randomInt } from 'node:crypto'
 import type { Wechatferry, wcf } from '@wechatferry/core'
 import type { FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
+import type { AnyFunction, ThrottledFunction } from 'p-throttle'
+import pThrottle from 'p-throttle'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentUserOptions } from './types'
 import { decodeBytesExtra, decodeRoomData, getWxidFromBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
@@ -11,16 +14,54 @@ import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   private timer: number | null = null
   wcf: Wechatferry
+  safe = false
+  throttleGlobal = pThrottle({
+    limit: 40, // 每分钟 40 条消息
+    interval: 60000, // 60秒的窗口
+  })
+
+  recipientThrottles: Record<string, (function_: AnyFunction) => ThrottledFunction<AnyFunction>> = {}
 
   constructor(options: WechatferryAgentUserOptions = {}) {
     super()
-    const { wcf }
+    const { wcf, safe }
       = resolvedWechatferryAgentOptions(options)
     this.wcf = wcf
+    this.safe = safe
+
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (target.safe && typeof target[prop as keyof WechatferryAgent] === 'function' && typeof prop === 'string' && prop.startsWith('send')) {
+          return (...args: any[]) => {
+            const [id] = args
+            const throttleForRecipient = target.getThrottleForRecipient(id)
+            const throttledForRecipient = throttleForRecipient(async () => {
+              return (Reflect.get(target, prop, receiver) as AnyFunction).apply(target, args)
+            })
+            const throttled = target.throttleGlobal(async () => throttledForRecipient())
+
+            return throttled()
+          }
+        }
+        return Reflect.get(target, prop, receiver)
+      },
+    })
   }
 
   private get isLoggedIn() {
     return this.wcf.isLogin()
+  }
+
+  private getThrottleForRecipient = (recipient: string) => {
+    let throttle = this.recipientThrottles[recipient]
+    if (!throttle) {
+      throttle = pThrottle({
+        limit: 1,
+        interval: randomInt(1000, 3000),
+      })
+      this.recipientThrottles[recipient] = throttle
+    }
+    return throttle
   }
 
   // #region Core

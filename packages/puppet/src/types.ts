@@ -17,6 +17,9 @@ export interface PuppetContact extends Contact {
 
 export interface PuppetWcferryUserOptions {
   agent?: WechatferryAgent
+  /**
+   * unstorage 实例，用于缓存数据
+   */
   storage?: Storage
 }
 
