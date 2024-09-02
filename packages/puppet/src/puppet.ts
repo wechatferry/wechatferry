@@ -864,7 +864,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     if (!message)
       return
 
-    this.msgHandler(message)
+    return this.msgHandler(message)
   }
 
   async msgHandler(message: WxMsg) {
@@ -911,80 +911,77 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   private async roomMsgHandler(message: Message) {
     log.verbose('PuppetBridge', 'roomMsgHandler()  message %s', JSON.stringify(message))
+
     const { roomId, text } = message
-    if (!roomId)
+    if (!text || !roomId)
       return
 
     const room = await this.roomStorage.getItem(roomId)
     if (!room)
       return
 
-    if (text?.includes('修改群名为')) {
-      let topic = ''
-      const oldTopic = room ? room.topic : ''
-      const contactNames = text.split('修改群名为')
-      let changer: PUPPET.payloads.Contact | null = null
-      if (contactNames[0]) {
-        topic = contactNames[1]?.split(/[“”"]/)[1] || ''
+    const regexp = /(你|".*?")/g
+    const [left, right] = [...(text.match(regexp) ?? [])]
 
-        log.info('PuppetBridge', 'roomMsg() topic %s', topic)
+    const actions = [
+      { check: '修改群名为', handler: this.handleRoomTopicChange },
+      { check: '添加为群管理员', handler: this.handleRoomAdminAdd },
+      { check: '移出了群聊', handler: this.handleRoomLeave },
+      { check: '分享的二维码加入群聊', handler: this.handleQrCodeJoin },
+      { check: '加入了群聊', handler: this.handleInviteJoin },
+    ]
 
-        room.topic = topic
-        await this.roomStorage.setItem(roomId, room)
-
-        if (contactNames[0] === '你') {
-          changer = await this.contactStorage.getItem(this.currentUserId)
-        }
-        else {
-          const member = await this.findMemberByUserName(contactNames[0], room)
-          if (member) {
-            changer = {
-              id: member.id,
-              name: member.name,
-              avatar: member.avatar,
-            } as PUPPET.payloads.Contact
-          }
-        }
-
-        this.emit('room-topic', { changerId: changer?.id, newTopic: topic, oldTopic, roomId })
+    for (const action of actions) {
+      if (text.includes(action.check)) {
+        await action.handler.call(this, { left, right, room, roomId, text })
+        return
       }
     }
+  }
 
-    if (text?.includes('添加为群管理员')) {
-      const contactNames = text.split(/将|添加为群管理员/)
+  private async handleRoomTopicChange({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
+    const { contact } = await this.getOpsRelationship([left, ''], room)
+    if (!contact)
+      return
 
-      if (contactNames.length > 2 && contactNames[0] && contactNames[1]) {
-        const { contact, contactIds } = await this.getOpsRelationship(contactNames, room)
+    const oldTopic = room.topic || ''
+    const topic = right.split(/[“”"]/)[1] || ''
 
-        if (contact && contactIds.length > 0) {
-          this.emit('room-admin', { adminIdList: contactIds, operatorId: contact.id, roomId })
-        }
-      }
-    }
+    room.topic = topic
+    await this.roomStorage.setItem(roomId, room)
+    this.emit('room-topic', { changerId: contact.id, newTopic: topic, oldTopic, roomId, timestamp: Date.now() })
+  }
 
-    if (text?.includes('加入了群聊')) {
-      const contactNames = text.split(/邀请|加入了群聊/)
+  private async handleRoomAdminAdd({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
+    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
+    if (!contact)
+      return
 
-      if (contactNames.length > 2 && contactNames[0] && contactNames[1]) {
-        const { contact, contactIds } = await this.getOpsRelationship(contactNames, room)
+    this.emit('room-admin', { adminIdList: contactIds, operatorId: contact.id, roomId, timestamp: Date.now() })
+  }
 
-        if (contact && contactIds.length > 0) {
-          this.emit('room-join', { inviteeIdList: contactIds, inviterId: contact.id, roomId })
-        }
-      }
-    }
+  private async handleRoomLeave({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
+    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
+    if (!contact)
+      return
 
-    if (text?.includes('移出了群聊')) {
-      const contactNames = text.split(/将|移出了群聊/)
+    this.emit('room-leave', { removeeIdList: contactIds, removerId: contact.id, roomId, timestamp: Date.now() })
+  }
 
-      if (contactNames.length > 2 && contactNames[0] && contactNames[1]) {
-        const { contact, contactIds } = await this.getOpsRelationship(contactNames, room)
+  private async handleQrCodeJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
+    const { contact, contactIds } = await this.getOpsRelationship([right, left], room)
+    if (!contact)
+      return
 
-        if (contact && contactIds.length > 0) {
-          this.emit('room-leave', { removeeIdList: contactIds, removerId: contact.id, roomId })
-        }
-      }
-    }
+    this.emit('room-join', { inviteeIdList: contactIds, inviterId: contact.id, roomId, timestamp: Date.now() })
+  }
+
+  private async handleInviteJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
+    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
+    if (!contact)
+      return
+
+    this.emit('room-join', { inviteeIdList: contactIds, inviterId: contact.id, roomId, timestamp: Date.now() })
   }
 
   private inviteMsgHandler = (message: Message) => {
@@ -1227,46 +1224,26 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private getOpsRelationship = async (contactNames: string[], room: PuppetRoom) => {
-    let contact: PUPPET.payloads.Contact | null = null
+    const findMember = async (name: string) => {
+      if (!name)
+        return
 
-    const contactIds = []
+      if (name === '你') {
+        return this.getContact(this.currentUserId)
+      }
+      const member = await this.findMemberByUserName(name, room)
+      if (!member)
+        return
 
-    if (contactNames[0] === '你') {
-      contact = await this.contactStorage.getItem(this.currentUserId)
-      const member = await this.findMemberByUserName(contactNames[1], room)
-      if (member) {
-        contactIds.push(member.id)
-      }
+      return this.getContact(member.id)
     }
-    else if (contactNames[1] === '你') {
-      contactIds.push(this.currentUserId)
-      const member = await this.findMemberByUserName(contactNames[0], room)
-      if (member) {
-        contact = {
-          id: member.id,
-          name: member.name,
-          avatar: member.avatar,
-        } as PUPPET.payloads.Contact
-      }
-    }
-    else {
-      const opsMember = await this.findMemberByUserName(contactNames[0], room)
-      if (opsMember) {
-        contact = {
-          id: opsMember.id,
-          name: opsMember.name,
-          avatar: opsMember.avatar,
-        } as PUPPET.payloads.Contact
-      }
-      const member = await this.findMemberByUserName(contactNames[1], room)
-      if (member) {
-        contactIds.push(member.id)
-      }
-    }
+
+    const leftContact = await findMember(contactNames[0])
+    const rightContact = await findMember(contactNames[1])
 
     return {
-      contact,
-      contactIds,
+      contact: leftContact,
+      contactIds: rightContact ? [rightContact.id] : [],
     }
   }
 
