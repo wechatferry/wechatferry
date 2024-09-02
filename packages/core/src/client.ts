@@ -366,12 +366,12 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
       query: new wcf.DbQuery({ db, sql }),
     })
     const rsp = this.send(req)
-    const rows = rsp.rows.rows
-    return rows.map(r =>
+    const rows = rsp.rows?.rows
+    return rows?.map(r =>
       Object.fromEntries(
         r.fields.map(f => [f.column, parseDbField(f.type, f.content)]),
       ),
-    )
+    ) ?? []
   }
 
   /**
