@@ -8,9 +8,12 @@
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
   },
+  "dependencies": {
+  },
   "devDependencies": {
     "@iconify-json/carbon": "catalog:",
     "@iconify-json/logos": "^1.1.44",
+    "@shikijs/vitepress-twoslash": "^1.16.1",
     "unplugin-vue-components": "^0.27.4",
     "vitepress": "catalog:",
     "vitepress-plugin-group-icons": "catalog:"

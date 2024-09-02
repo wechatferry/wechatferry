@@ -20,15 +20,6 @@
 </p>
 <br>
 
-## 包
-
-- wechatferry: 包含 core、agent、puppet
-- @wechatferry/core: wcferry 的完整实现
-- @wechatferry/agent: 微信常用操作的封装
-- @wechatferry/puppet: wechaty 的适配器
-- @wechatferry/nuxt: 轻松接入 Nuxt，含开发者工具
-- @wechatferry/robot: Nuxt 层，集成 AI、Redis、队列、日志等常用工具
-
 ## 安装
 
 ```bash
