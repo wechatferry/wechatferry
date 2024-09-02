@@ -26,8 +26,8 @@ export interface WechatferrySDKEventMap {
 }
 
 export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> {
-  lib: koffi.IKoffiLib
-  options: WechatferrySDKOptions
+  private lib: koffi.IKoffiLib
+  private options: WechatferrySDKOptions
   private messageRecvDisposable?: MessageRecvDisposable
   constructor(options: WechatferrySDKUserOptions = {}) {
     super()
@@ -47,18 +47,28 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> {
     return `tcp://${this.options.host}`
   }
 
+  /** 用于发送指令的地址 */
   get cmdUrl() {
     return `${this.tcpBaseUrl}:${this.options.port}`
   }
 
+  /** 用于接收消息的地址 */
   get msgUrl() {
     return `${this.tcpBaseUrl}:${this.options.port + 1}`
   }
 
+  /**
+   * 初始化 sdk
+   * @param debug 是否开启调试
+   * @param port 启动的端口
+   */
   init(debug = this.options.debug, port = this.options.port): boolean {
     return this.WxInitSDK(debug, port) === 0
   }
 
+  /**
+   * 销毁 sdk
+   */
   destroy(): void {
     this.stopRecvMessage()
     return this.WxDestroySDK()
@@ -68,6 +78,9 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> {
     return !!this.messageRecvDisposable
   }
 
+  /**
+   * 启用消息接收
+   */
   startRecvMessage() {
     this.messageRecvDisposable = Socket.recvMessage(this.msgUrl, undefined, (err: unknown | undefined, buf: Buffer) => {
       if (err) {
@@ -78,6 +91,9 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> {
     })
   }
 
+  /**
+   * 停止接收消息
+   */
   stopRecvMessage() {
     this.messageRecvDisposable?.dispose()
     this.messageRecvDisposable = undefined

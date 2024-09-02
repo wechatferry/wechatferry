@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events'
 import process, { nextTick } from 'node:process'
 import { Buffer } from 'node:buffer'
-import type { MessageRecvDisposable } from '@rustup/nng'
 import { Socket } from '@rustup/nng'
 import type { FileBox, FileBoxInterface } from 'file-box'
 import { remove } from 'fs-extra'
@@ -23,9 +22,8 @@ export interface WechatferryEventMap {
 }
 
 export class Wechatferry extends EventEmitter<WechatferryEventMap> {
-  sdk: WechatferrySDK
-  socket: Socket
-  messageRecvDisposable?: MessageRecvDisposable
+  private sdk: WechatferrySDK
+  private socket: Socket
 
   constructor(options: WechatferryUserOptions = {}) {
     super()
@@ -36,6 +34,9 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   // #region Core
 
+  /**
+   * 启动 wcf
+   */
   start() {
     this.catchErrors()
     this.sdk.init()
@@ -44,12 +45,18 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
     this.startRecvMessage()
   }
 
+  /**
+   * 停止 wcf
+   */
   stop() {
     this.stopRecvMessage()
     this.socket.close()
     this.sdk.destroy()
   }
 
+  /**
+   * 开始接收消息
+   */
   startRecvMessage() {
     if (this.sdk.isReceiving)
       return
@@ -64,6 +71,9 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
     return status
   }
 
+  /**
+   * 停止接收消息
+   */
   stopRecvMessage() {
     if (!this.sdk.isReceiving)
       return
@@ -74,6 +84,7 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
     return status
   }
 
+  /** 发送 WCF Function Request */
   send(req: wcf.Request): wcf.Response {
     const buf = this.socket.send(Buffer.from(req.serialize()))
     return wcf.Response.deserialize(buf)

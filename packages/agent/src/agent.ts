@@ -48,24 +48,20 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     })
   }
 
-  private get isLoggedIn() {
-    return this.wcf.isLogin()
-  }
-
-  private getThrottleForRecipient = (recipient: string) => {
-    let throttle = this.recipientThrottles[recipient]
-    if (!throttle) {
-      throttle = pThrottle({
-        limit: 1,
-        interval: randomInt(1000, 3000),
-      })
-      this.recipientThrottles[recipient] = throttle
-    }
-    return throttle
-  }
-
   // #region Core
 
+  /** 是否登录 */
+  private get isLoggedIn() {
+    try {
+      return this.wcf.isLogin()
+    }
+    catch { }
+    return false
+  }
+
+  /**
+   * 启动 wcf
+   */
   start() {
     this.wcf.start()
     this.startTimer()
@@ -73,6 +69,10 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     this.wcf.on('message', msg => this.emit('message', msg))
   }
 
+  /**
+   * 停止 wcf
+   * @param error 要 emit 的错误对象
+   */
   stop(error?: any) {
     this.stopTimer()
     if (this.isLoggedIn) {
@@ -116,42 +116,110 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     this.timer = null
   }
 
+  private getThrottleForRecipient = (recipient: string) => {
+    let throttle = this.recipientThrottles[recipient]
+    if (!throttle) {
+      throttle = pThrottle({
+        limit: 1,
+        interval: randomInt(1000, 3000),
+      })
+      this.recipientThrottles[recipient] = throttle
+    }
+    return throttle
+  }
+
   // #endregion
 
   // #region API
 
+  /**
+   * 执行 sql 查询
+   *
+   * @param db db 名称
+   * @param sql sql 语句或 knex 查询构建器
+   * @returns 查询结果
+   */
   dbSqlQuery<T>(db: string, sql: string | Knex.QueryBuilder): T {
     return this.wcf.execDbQuery(db, typeof sql === 'string' ? sql : sql.toQuery()) as T
   }
 
+  /**
+   * 邀请联系人加群
+   *
+   * @param roomId 群id
+   * @param contactId 联系人wxid
+   */
   inviteChatRoomMembers(roomId: string, contactId: string) {
     return this.wcf.inviteRoomMembers(roomId, [contactId])
   }
 
+  /**
+   * 添加联系人加群
+   *
+   * @param roomId 群id
+   * @param contactId 联系人wxid
+   */
   addChatRoomMembers(roomId: string, contactId: string) {
     return this.wcf.addRoomMembers(roomId, [contactId])
   }
 
+  /**
+   * 踢出群聊
+   *
+   * @param roomId 群id
+   * @param contactId 群成员wxid
+   */
   removeChatRoomMembers(roomId: string, contactId: string) {
     return this.wcf.delRoomMembers(roomId, [contactId])
   }
 
+  /**
+   * 发送文本消息
+   *
+   * @param conversationId 会话id，可以是 wxid 或者 roomid
+   * @param text 文本消息
+   * @param mentionIdList 要 `@` 的 wxid 列表
+   */
   sendText(conversationId: string, text: string, mentionIdList: string[] = []) {
     return this.wcf.sendTxt(text, conversationId, mentionIdList)
   }
 
-  sendImage(conversationId: string, file: FileBoxInterface) {
-    return this.wcf.sendImg(file, conversationId)
+  /**
+   * 发送图片消息
+   *
+   * @param conversationId 会话id，可以是 wxid 或者 roomid
+   * @param image 图片 fileBox
+   */
+  sendImage(conversationId: string, image: FileBoxInterface) {
+    return this.wcf.sendImg(image, conversationId)
   }
 
+  /**
+   * 发送文件消息
+   *
+   * @param conversationId 会话id，可以是 wxid 或者 roomid
+   * @param file 文件 fileBox
+   */
   sendFile(conversationId: string, file: FileBoxInterface) {
     return this.wcf.sendFile(file, conversationId)
   }
 
+  /**
+   * 发送富文本消息
+   *
+   * @param conversationId 会话id，可以是 wxid 或者 roomid
+   * @param desc 富文本内容
+   */
   sendRichText(conversationId: string, desc: Omit<ReturnType<wcf.RichText['toObject']>, 'receiver'>) {
     return this.wcf.sendRichText(desc, conversationId)
   }
 
+  /**
+   * 转发消息
+   *
+   * @param conversationId 会话id，可以是 wxid 或者 roomid
+   * @param messageId 要转发的消息 id
+   */
   forwardMsg(conversationId: string, messageId: string) {
     return this.wcf.forwardMsg(conversationId, messageId)
   }
