@@ -10,7 +10,7 @@ export interface WechatferryAgentEventMap {
 export interface WechatferryAgentUserOptions {
   wcf?: Wechatferry
   /**
-   * 安全模型
+   * 安全模式
    *
    * @description 严格限制发送消息的频率，安全模式不保证绝对安全
    *
