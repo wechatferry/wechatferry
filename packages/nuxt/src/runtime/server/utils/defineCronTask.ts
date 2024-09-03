@@ -1,6 +1,6 @@
 import type { Task, TaskContext, TaskPayload } from 'nitropack/runtime'
 import { Cron } from 'croner'
-import { defineTask, useNitroApp } from '#imports'
+import { defineTask, useNitroApp } from 'nitropack/runtime'
 
 export interface CronTask<RT> extends Task<RT> {
   pattern?: string | Date

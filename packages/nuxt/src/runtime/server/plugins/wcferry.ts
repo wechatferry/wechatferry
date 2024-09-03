@@ -3,16 +3,13 @@ import type { WechatferryPuppet } from '@wechatferry/puppet'
 import { defineNitroPlugin } from 'nitropack/runtime'
 import { useBotPuppet } from '../utils/useBotPuppet'
 import { useBot } from '../utils/useBot'
-// @ts-expect-error ignore
-import * as skills from '#internal/wcferry/skills'
-
-// eslint-disable-next-line ts/no-unused-expressions
-skills
 
 export default defineNitroPlugin(async (nitroApp) => {
   const puppet = useBotPuppet()
   const bot = useBot()
   bot.on('ready', () => {
+    // @ts-expect-error untyped
+    import('#internal/wcferry/skills')
     bot.on('message', async (msg) => {
       bot.hooks.callHook('message', msg)
       const room = msg.room()
@@ -44,7 +41,6 @@ export default defineNitroPlugin(async (nitroApp) => {
       bot.hooks.callHook('room:invite', ...args)
     })
   })
-  await bot.start()
 
   nitroApp.wcferry = {
     puppet,
@@ -54,6 +50,8 @@ export default defineNitroPlugin(async (nitroApp) => {
   nitroApp.hooks.hook('close', async () => {
     await bot.stop()
   })
+
+  bot.start()
 })
 
 declare module 'nitropack' {

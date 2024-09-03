@@ -29,7 +29,6 @@ async function scanDir(
 export function setupVirtual(nuxt: Nuxt, nitro: Nitro) {
   const wcferryDirs = nitro.options.scanDirs.map(v => join(v, 'wcferry'))
   nuxt.options.watch.push(...wcferryDirs)
-
   nitro.options.virtual['#internal/wcferry/skills'] = async () => {
     const skills = (await Promise.all(wcferryDirs.map(dir => scanDir(dir, 'skills')))).flat()
     nitro.scannedSkills = skills.map((file) => {
@@ -38,7 +37,8 @@ export function setupVirtual(nuxt: Nuxt, nitro: Nitro) {
         ...file,
       }
     })
-    return skills.map(v => `import("${v.fullPath}");`).join('\n')
+    const skillsCode = skills.map(v => `import("${v.fullPath}");`).join('\n')
+    return `${skillsCode}\nexport default {}`
   }
 
   nitro.options.virtual['#internal/wcferry/middleware'] = async () => {
