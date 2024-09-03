@@ -920,7 +920,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     if (!room)
       return
 
-    const regexp = /(你|".*?")/g
+    const regexp = /(你|[“”"].*?[“”"])/g
     const [left, right] = [...(text.match(regexp) ?? [])]
 
     const actions = [
@@ -939,49 +939,54 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     }
   }
 
+  // leftId修改群名为"right"
   private async handleRoomTopicChange({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { contact } = await this.getOpsRelationship([left, ''], room)
-    if (!contact)
+    const { leftId } = await this.getOpsRelationship([left, ''], room)
+    if (!leftId)
       return
 
     const oldTopic = room.topic || ''
-    const topic = right.split(/[“”"]/)[1] || ''
+    const topic = right?.split(/[“”"]/)[1] || ''
 
     room.topic = topic
     await this.roomStorage.setItem(roomId, room)
-    this.emit('room-topic', { changerId: contact.id, newTopic: topic, oldTopic, roomId, timestamp: Date.now() })
+    this.emit('room-topic', { changerId: leftId, newTopic: topic, oldTopic, roomId, timestamp: Date.now() })
   }
 
+  // leftId将rightId添加为群管理员
   private async handleRoomAdminAdd({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
-    if (!contact)
+    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
+    if (!leftId)
       return
 
-    this.emit('room-admin', { adminIdList: contactIds, operatorId: contact.id, roomId, timestamp: Date.now() })
+    this.emit('room-admin', { adminIdList: [rightId], operatorId: leftId, roomId, timestamp: Date.now() })
   }
 
+  // leftId将"rightId"移出了群聊
   private async handleRoomLeave({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
-    if (!contact)
+    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
+    if (!leftId)
       return
 
-    this.emit('room-leave', { removeeIdList: contactIds, removerId: contact.id, roomId, timestamp: Date.now() })
+    this.emit('room-leave', { removeeIdList: [rightId], removerId: leftId, roomId, timestamp: Date.now() })
   }
 
+  // "leftId"通过扫描"rightId"分享的二维码加入群聊
   private async handleQrCodeJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { contact, contactIds } = await this.getOpsRelationship([right, left], room)
-    if (!contact)
+    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
+    if (!rightId)
       return
 
-    this.emit('room-join', { inviteeIdList: contactIds, inviterId: contact.id, roomId, timestamp: Date.now() })
+    this.emit('room-join', { inviteeIdList: [leftId], inviterId: rightId, roomId, timestamp: Date.now() })
   }
 
+  // "leftId"邀请"rightId"加入了群聊
   private async handleInviteJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { contact, contactIds } = await this.getOpsRelationship([left, right], room)
-    if (!contact)
+    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
+    if (!leftId)
       return
 
-    this.emit('room-join', { inviteeIdList: contactIds, inviterId: contact.id, roomId, timestamp: Date.now() })
+    this.emit('room-join', { inviteeIdList: [rightId], inviterId: leftId, roomId, timestamp: Date.now() })
   }
 
   private inviteMsgHandler = (message: Message) => {
@@ -1008,19 +1013,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       const roomInfo = this.agent.getChatRoomInfo(room.id)
       if (!roomInfo)
         return
-      room.announce = roomInfo.Announcement
-      room.topic = roomInfo.NickName
-      room.avatar = roomInfo.smallHeadImgUrl
-      const members = this.agent.getChatRoomMembers(room.id)
-      room.memberIdList = members?.map(member => member.UserName) ?? []
-      room.members = members?.map((member) => {
-        return {
-          id: member.UserName,
-          name: member.NickName,
-          avatar: member.smallHeadImgUrl,
-        } as RoomMember
-      }) ?? []
-
+      room = this.formatRoom(roomInfo)
       await this.roomStorage.setItem(room.id, room)
     }
     catch (error: any) {
@@ -1049,27 +1042,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       const contactInfo = this.agent.getContactInfo(contact.id)
       if (!contactInfo)
         return
-
-      let contactType = PUPPET.types.Contact.Individual
-
-      if (contactInfo.UserName.startsWith('gh_')) {
-        contactType = PUPPET.types.Contact.Official
-      }
-      if (contactInfo.UserName.startsWith('@openim')) {
-        contactType = PUPPET.types.Contact.Corporation
-      }
-
-      contact = {
-        ...contact,
-        id: contactInfo.UserName,
-        name: contactInfo.NickName,
-        type: contactType,
-        friend: true,
-        phone: [] as string[],
-        avatar: contactInfo.smallHeadImgUrl,
-        tags: contactInfo.tags,
-      } as PuppetContact
-
+      contact = this.formatContact(contactInfo)
       await this.contactStorage.setItem(contact.id, contact)
     }
     catch (error) {
@@ -1082,46 +1055,15 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     try {
       const contacts = this.agent.getContactList()
 
-      for (const contact of contacts) {
-        let contactType = PUPPET.types.Contact.Individual
-
-        if (contact.UserName.startsWith('gh_')) {
-          contactType = PUPPET.types.Contact.Official
-        }
-        if (contact.UserName.startsWith('@openim')) {
-          contactType = PUPPET.types.Contact.Corporation
-        }
-
-        const contactPayload = {
-          id: contact.UserName,
-          name: contact.NickName,
-          type: contactType,
-          friend: true,
-          phone: [] as string[],
-          avatar: contact.smallHeadImgUrl,
-          tags: contact.tags,
-        } as PuppetContact
-
-        await this.contactStorage.setItem(contact.UserName, contactPayload)
-      }
-
-      const updateContactPromises = (await this.contactStorage.getItemsList()).map(
-        (contact) => {
-          return this.updateContactPayload(contact, true)
-        },
-      )
-      let size = updateContactPromises.length
-
-      // update contact payload in batch
-      while (size > 0) {
-        await Promise.all(updateContactPromises.splice(0, 15))
-        size = updateContactPromises.length
+      for (const contactInfo of contacts) {
+        const contact = this.formatContact(contactInfo)
+        await this.contactStorage.setItem(contact.id, contact)
       }
 
       log.verbose(
         'PuppetBridge',
         'loadContacts() contacts count %s',
-        size,
+        contacts.length,
       )
     }
     catch (error: any) {
@@ -1138,36 +1080,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
         throw new Error('no rooms data')
 
       for (const room of roomsData) {
-        const chatroomMembers = this.agent.getChatRoomMembers(
-          room.UserName,
-        )
-        const membersPromise = room.memberIdList.map(async (userName) => {
-          const contact = chatroomMembers?.find(v => v.UserName === userName)
-          return {
-            id: contact?.UserName,
-            roomAlias: contact?.DisplayName,
-            avatar: contact?.smallHeadImgUrl,
-            name: contact?.Remark || contact?.NickName,
-          } as RoomMember
-        })
-        const members = await Promise.all(membersPromise)
-        const roomPayload = {
-          id: room.UserName,
-          avatar: room.smallHeadImgUrl,
-          external: false,
-          ownerId: room.ownerUserName || '',
-          announce: room.Announcement || '',
-          topic: room.NickName || '',
-          // TODO: adminList
-          // adminIdList:
-          //   chatroomMembers
-          //     .filter((member) => member.isChatroomAdmin)
-          //     .map((member) => member.userName) || [],
-          memberIdList: room.memberIdList || [],
-          members,
-        } as PuppetRoom
-
-        await this.roomStorage.setItem(room.UserName, roomPayload)
+        const data = this.formatRoom(room)
+        await this.roomStorage.setItem(room.UserName, data)
       }
       log.verbose(
         'PuppetBridge',
@@ -1215,35 +1129,75 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   private findMemberByUserName = async (userName: string, room: PuppetRoom) => {
     const name = userName.split(/[“”"]/)[1] || ''
-
     if (!this.findMemberByName(name, room)) {
       await this.updateRoomPayload(room, true)
     }
-
+    room = await this.roomStorage.getItem(room.id) as PuppetRoom
+    if (!room)
+      return
     return this.findMemberByName(name, room)
   }
 
-  private getOpsRelationship = async (contactNames: string[], room: PuppetRoom) => {
+  private getOpsRelationship = async ([left, right]: string[], room: PuppetRoom) => {
     const findMember = async (name: string) => {
       if (!name)
         return
 
       if (name === '你') {
-        return this.getContact(this.currentUserId)
+        return this.currentUserId
       }
       const member = await this.findMemberByUserName(name, room)
       if (!member)
         return
 
-      return this.getContact(member.id)
+      return member.id
     }
 
-    const leftContact = await findMember(contactNames[0])
-    const rightContact = await findMember(contactNames[1])
-
     return {
-      contact: leftContact,
-      contactIds: rightContact ? [rightContact.id] : [],
+      leftId: await findMember(left),
+      rightId: await findMember(right),
+    }
+  }
+
+  private formatContact<T extends Exclude<ReturnType<typeof this.agent.getContactInfo>, undefined>>(contactInfo: T): PuppetContact {
+    let contactType = PUPPET.types.Contact.Individual
+
+    if (contactInfo.UserName.startsWith('gh_')) {
+      contactType = PUPPET.types.Contact.Official
+    }
+    if (contactInfo.UserName.startsWith('@openim')) {
+      contactType = PUPPET.types.Contact.Corporation
+    }
+    return {
+      id: contactInfo.UserName,
+      name: contactInfo.NickName,
+      type: contactType,
+      friend: true,
+      phone: [] as string[],
+      avatar: contactInfo.smallHeadImgUrl,
+      tags: contactInfo.tags,
+      gender: 0,
+    }
+  }
+
+  private formatRoom<T extends Exclude<ReturnType<typeof this.agent.getChatRoomInfo>, undefined>>(roomInfo: T): PuppetRoom {
+    const memberList = this.agent.getChatRoomMembersByMemberIdList(roomInfo.memberIdList, roomInfo.displayNameMap)
+    const members = memberList.map(m => ({
+      id: m?.UserName,
+      roomAlias: m?.DisplayName,
+      avatar: m?.smallHeadImgUrl,
+      name: m?.Remark || m?.NickName,
+    }))
+    return {
+      id: roomInfo.UserName,
+      avatar: roomInfo.smallHeadImgUrl,
+      external: false,
+      ownerId: roomInfo.ownerUserName || '',
+      announce: roomInfo.Announcement || '',
+      topic: roomInfo.NickName || '',
+      adminIdList: [],
+      memberIdList: roomInfo.memberIdList,
+      members,
     }
   }
 
