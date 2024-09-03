@@ -1,7 +1,7 @@
 {
   "name": "@wechatferry/puppet",
   "type": "module",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "wcferry puppet for wechaty",
   "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
