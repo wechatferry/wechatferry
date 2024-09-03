@@ -50,7 +50,6 @@
     "@rustup/nng": "^0.1.2",
     "consola": "^3.2.3",
     "file-box": "^1.4.15",
-    "fs-extra": "catalog:",
     "google-protobuf": "^3.21.4",
     "koffi": "^2.9.0",
     "pathe": "^1.1.2"

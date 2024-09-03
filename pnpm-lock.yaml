@@ -134,9 +134,6 @@ importers:
       file-box:
         specifier: ^1.4.15
         version: 1.4.15
-      fs-extra:
-        specifier: 'catalog:'
-        version: 11.2.0
       google-protobuf:
         specifier: ^3.21.4
         version: 3.21.4

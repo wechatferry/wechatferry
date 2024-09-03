@@ -1,9 +1,8 @@
 import { EventEmitter } from 'node:events'
-import process, { nextTick } from 'node:process'
+import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { Socket } from '@rustup/nng'
 import type { FileBox, FileBoxInterface } from 'file-box'
-import { remove } from 'fs-extra'
 import { WechatferrySDK } from './sdk'
 import { wcf } from './proto/wcf'
 import type { Contact, DbTable, UserInfo, WechatferryOptions, WechatferryUserOptions, WxMsg } from './types'
@@ -221,9 +220,6 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
       }),
     })
     const { status } = this.send(req)
-    nextTick(() => {
-      void remove(path)
-    })
     return status
   }
 
@@ -244,9 +240,6 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
       }),
     })
     const { status } = this.send(req)
-    nextTick(() => {
-      void remove(path)
-    })
     return status
   }
 
