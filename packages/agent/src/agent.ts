@@ -7,7 +7,7 @@ import type { Knex } from 'knex'
 import type { AnyFunction, ThrottledFunction } from 'p-throttle'
 import pThrottle from 'p-throttle'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentUserOptions } from './types'
-import { decodeBytesExtra, decodeRoomData, getWxidFromBytesExtra, resolvedWechatferryAgentOptions } from './utils'
+import { decodeBytesExtra, getWxidFromBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
 import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 
@@ -251,8 +251,9 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'ChatRoomInfo.ChatRoomName',
         'ChatRoom.ChatRoomName',
       )
-      .select(knex.ref('RoomData').withSchema('ChatRoom'))
       .select(knex.ref('Reserved2').withSchema('ChatRoom'))
+      .select(knex.ref('UserNameList').withSchema('ChatRoom'))
+      .select(knex.ref('DisplayNameList').withSchema('ChatRoom'))
       .leftJoin(
         'ContactHeadImgUrl',
         'Contact.UserName',
@@ -262,16 +263,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
     const list = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
 
-    return list.map((v) => {
-      const RoomData = v.RoomData
-      const data = decodeRoomData(RoomData)
-      const memberIdList = data.members?.map(m => m.wxid) ?? []
-      return {
-        ...v,
-        ownerUserName: v.Reserved2,
-        memberIdList,
-      }
-    })
+    return list.map(room => this.formatChatRoomInfo(room))
   }
 
   /**
@@ -294,7 +286,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       .leftJoin('Contact', 'ChatRoomInfo.ChatRoomName', 'Contact.UserName')
       .select(
         knex.ref('NickName').withSchema('Contact'),
-        knex.ref('userName').withSchema('Contact'),
+        knex.ref('UserName').withSchema('Contact'),
       )
       .leftJoin(
         'ContactHeadImgUrl',
@@ -307,6 +299,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'ChatRoomInfo.ChatRoomName',
         'ChatRoom.ChatRoomName',
       )
+      .select(knex.ref('Reserved2').withSchema('ChatRoom'))
       .select(knex.ref('UserNameList').withSchema('ChatRoom'))
       .select(knex.ref('DisplayNameList').withSchema('ChatRoom'))
       .where('ChatRoomInfo.ChatRoomName', userName)
@@ -314,35 +307,29 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     const [data] = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
     if (!data)
       return
-    const memberIdList = data.UserNameList.split('^G')
-    const DisplayNameList = data.DisplayNameList.split('^G')
-    const displayNameMap: Record<string, string> = {}
-    memberIdList.forEach((memberId, index) => {
-      displayNameMap[memberId] = DisplayNameList[index]
-    })
-    return {
-      ...data,
-      /** 群成员 wxid 列表 */
-      memberIdList,
-      /** 群成员昵称列表 */
-      DisplayNameList,
-      /** 群成员{wxid:昵称}对照表 */
-      displayNameMap,
-    }
+
+    return this.formatChatRoomInfo(data)
   }
 
   /**
    * 群聊成员
    * @param userName roomId
    */
-  // eslint-disable-next-line ts/ban-ts-comment
-  // @ts-expect-error
-  override getChatRoomMembers(userName: string) {
-    const { db, knex } = useMicroMsgDbQueryBuilder()
+  getChatRoomMembers(userName: string) {
     const roomInfo = this.getChatRoomInfo(userName)
     if (!roomInfo)
       return
     const { memberIdList, displayNameMap } = roomInfo
+    return this.getChatRoomMembersByMemberIdList(memberIdList, displayNameMap)
+  }
+
+  /**
+   * 群聊成员
+   * @param memberIdList 群成员 wxid 列表
+   * @param displayNameMap 群成员 wxid 与昵称对照表
+   */
+  getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string>) {
+    const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
       .select('NickName', 'UserName', 'Remark')
@@ -510,4 +497,28 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       }
     })
   }
+
+  // #region Utils
+
+  private formatChatRoomInfo<T extends { UserNameList: string, DisplayNameList: string, Reserved2: string }>(room: T) {
+    const memberIdList = room.UserNameList.split('^G')
+    const DisplayNameList = room.DisplayNameList.split('^G')
+    const displayNameMap: Record<string, string> = {}
+    memberIdList.forEach((memberId: string, index: number) => {
+      displayNameMap[memberId] = DisplayNameList[index]
+    })
+    return {
+      ...room,
+      /** 群主 */
+      ownerUserName: room.Reserved2,
+      /** 群成员 wxid 列表 */
+      memberIdList,
+      /** 群成员昵称列表 */
+      DisplayNameList,
+      /** 群成员{wxid:昵称}对照表 */
+      displayNameMap,
+    }
+  }
+
+  // #endregion
 }
