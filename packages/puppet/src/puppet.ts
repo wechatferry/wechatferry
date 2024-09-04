@@ -835,20 +835,6 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
     const { content, type } = await normalizedMsg(message)
 
-    let mentionIdList: string[] = []
-
-    try {
-      if (type === PUPPET.types.Message.Text) {
-        const xml = await xmlToJson<{ msgsource?: { atuserlist?: string[] } }>(message.xml)
-        if (xml?.msgsource?.atuserlist?.length)
-          return
-        mentionIdList = xml.msgsource?.atuserlist?.map(v => v.trim()) || []
-      }
-    }
-    catch (e) {
-      log.error('PuppetBridge', 'msgHandler() exception %s', (e as Error).stack)
-    }
-
     const payload = {
       type,
       id: message.id.toString(),
@@ -857,8 +843,23 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       listenerId: roomId ? '' : listenerId,
       timestamp: Date.now(),
       roomId,
-      mentionIdList,
     } as Message
+
+    if (type === PUPPET.types.Message.Text) {
+      try {
+        const xml = await xmlToJson<{ msgsource?: { atuserlist?: string[] } }>(message.xml)
+        if (xml?.msgsource?.atuserlist?.length) {
+          const mentionIdList = xml.msgsource?.atuserlist?.map(v => v.trim()) || []
+          if (mentionIdList.length) {
+            // @ts-expect-error untyped
+            payload.mentionIdList = mentionIdList
+          }
+        }
+      }
+      catch (e) {
+        log.error('PuppetBridge', 'msgHandler() exception %s', (e as Error).stack)
+      }
+    }
 
     if (roomId && !await this.roomStorage.hasItem(roomId)) {
       await this.updateRoomPayload({
