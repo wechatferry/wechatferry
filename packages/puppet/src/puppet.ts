@@ -1,5 +1,6 @@
 /* eslint-disable unused-imports/no-unused-vars */
 import { nextTick } from 'node:process'
+import { setTimeout } from 'node:timers/promises'
 import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 import type { Storage, StorageValue } from 'unstorage'
@@ -12,7 +13,6 @@ import type {
   EventMessage,
   EventRoomInvite,
   Message,
-  RoomMember,
 } from 'wechaty-puppet/payloads'
 
 import type { UserInfo, WxMsg } from '@wechatferry/core'
@@ -55,12 +55,11 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     super.login(contactId)
   }
 
-  override ding(data?: string | undefined): void {
+  override async ding(data?: string | undefined): Promise<void> {
     log.silly('PuppetBridge', 'ding(%s)', data || '')
 
-    setTimeout(() => {
-      this.emit('dong', { data: data || '' })
-    }, 1000)
+    await setTimeout(1000)
+    this.emit('dong', { data: data || '' })
   }
 
   // #region Contact
@@ -916,13 +915,6 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     if (!text || !roomId)
       return
 
-    const room = await this.roomStorage.getItem(roomId)
-    if (!room)
-      return
-
-    const regexp = /(你|[“”"].*?[“”"])/g
-    const [left, right] = [...(text.match(regexp) ?? [])]
-
     const actions = [
       { check: '修改群名为', handler: this.handleRoomTopicChange },
       { check: '添加为群管理员', handler: this.handleRoomAdminAdd },
@@ -933,62 +925,152 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
     for (const action of actions) {
       if (text.includes(action.check)) {
-        await action.handler.call(this, { left, right, room, roomId, text })
-        return
+        return await action.handler.call(this, roomId, text)
       }
     }
   }
 
-  // leftId修改群名为"right"
-  private async handleRoomTopicChange({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { leftId } = await this.getOpsRelationship([left, ''], room)
-    if (!leftId)
+  /**
+   * 处理群名称修改事件
+   *
+   * 注意这里的群名是全角引号
+   * @example `"小茸茸"修改群名为“三花AI摆摊”`
+   * @example `你修改群名为“三花AI摆摊”`
+   */
+  private async handleRoomTopicChange(roomId: string, text: string) {
+    log.verbose('PuppetBridge', 'handleRoomTopicChange(%s, %s)', roomId, text)
+    const room = await this.getRoom(roomId) as PuppetRoom
+    const [changerName, newTopic] = text.trim().split('修改群名为').filter(v => v)
+    const changer = await this.findMemberByNickName(changerName, room)
+    if (!changer) {
+      log.error(`handleRoomTopicChange: changer ${changerName} not found`)
       return
-
+    }
     const oldTopic = room.topic || ''
-    const topic = right?.split(/[“”"]/)[1] || ''
+    const topic = newTopic?.split(/[“”"]/)[1] || ''
 
     room.topic = topic
     await this.roomStorage.setItem(roomId, room)
-    this.emit('room-topic', { changerId: leftId, newTopic: topic, oldTopic, roomId, timestamp: Date.now() })
+    this.emit('room-topic', { changerId: changer.id, newTopic: topic, oldTopic, roomId, timestamp: Date.now() })
   }
 
-  // leftId将rightId添加为群管理员
-  private async handleRoomAdminAdd({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
-    if (!leftId)
+  /**
+   * 处理群管理员添加事件
+   *
+   * @example `你将"小茸茸"添加为群管理员`
+   * @example `"小茸茸"将"小茸茸"添加为群管理员`
+   * @example `"小茸茸"将"小茸茸1、小茸茸2"添加为群管理员`
+   */
+  private async handleRoomAdminAdd(roomId: string, text: string) {
+    log.verbose('PuppetBridge', 'handleRoomAdminAdd(%s, %s)', roomId, text)
+    const room = await this.getRoom(roomId) as PuppetRoom
+    const [operatorName, ...adminNameList] = text.trim().split(/将|、|添加为群管理员/).filter(v => v)
+    const operator = await this.findMemberByNickName(operatorName, room)
+    if (!operator) {
+      log.error(`handleRoomAdminAdd: operator ${operatorName} not found`)
       return
-
-    this.emit('room-admin', { adminIdList: [rightId], operatorId: leftId, roomId, timestamp: Date.now() })
-  }
-
-  // leftId将"rightId"移出了群聊
-  private async handleRoomLeave({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
-    if (!leftId)
+    }
+    const adminIdListPromises = adminNameList.map(async (name) => {
+      const member = await this.findMemberByNickName(name, room)
+      return member?.id as string
+    })
+    const adminIdList = (await Promise.all(adminIdListPromises)).filter(v => v)
+    if (!adminIdList.length) {
+      log.error(`handleRoomAdminAdd: admin ${adminNameList} not found`)
       return
-
-    this.emit('room-leave', { removeeIdList: [rightId], removerId: leftId, roomId, timestamp: Date.now() })
+    }
+    this.emit('room-admin', { adminIdList, operatorId: operator.id, roomId, timestamp: Date.now() })
   }
 
-  // "leftId"通过扫描"rightId"分享的二维码加入群聊
-  private async handleQrCodeJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
-    if (!rightId)
+  /**
+   * 处理群成员移出事件
+   *
+   * @example `你将"小茸茸"移出了群聊`
+   * @example `"小茸茸"将"小茸茸"移出了群聊`
+   * @example `"小茸茸"将"小茸茸1、小茸茸2"移出了群聊`
+   */
+  private async handleRoomLeave(roomId: string, text: string) {
+    log.verbose('PuppetBridge', 'handleRoomLeave(%s, %s)', roomId, text)
+    const room = await this.getRoom(roomId) as PuppetRoom
+    const [removerName, ...removeeNameList] = text.trim().split(/将|、|移出了群聊/).filter(v => v)
+    const remover = await this.findMemberByNickName(removerName, room)
+    if (!remover) {
+      log.error(`handleRoomLeave: operator ${removerName} not found`)
       return
-
-    this.emit('room-join', { inviteeIdList: [leftId], inviterId: rightId, roomId, timestamp: Date.now() })
-  }
-
-  // "leftId"邀请"rightId"加入了群聊
-  private async handleInviteJoin({ left, right, room, roomId }: { left: string, right: string, room: any, roomId: string }) {
-    const { leftId, rightId } = await this.getOpsRelationship([left, right], room)
-    if (!leftId)
+    }
+    const removeeIdListPromises = removeeNameList.map(async (name) => {
+      const member = await this.findMemberByNickName(name, room)
+      return member?.id as string
+    })
+    const removeeIdList = (await Promise.all(removeeIdListPromises)).filter(v => v)
+    if (!removeeIdList.length) {
+      log.error(`handleRoomLeave: removee ${removeeNameList} not found`)
       return
+    }
 
-    this.emit('room-join', { inviteeIdList: [rightId], inviterId: leftId, roomId, timestamp: Date.now() })
+    this.emit('room-leave', { removeeIdList, removerId: remover.id, roomId, timestamp: Date.now() })
   }
 
+  /**
+   * 处理群成员扫码加入事件
+   *
+   * @example `"小茸茸"通过扫描你分享的二维码加入群聊`
+   * @example `"小茸茸"通过扫描"小茸茸"分享的二维码加入群聊`
+   */
+  private async handleQrCodeJoin(roomId: string, text: string, retries = 5) {
+    log.verbose('PuppetBridge', 'handleQrCodeJoin(%s, %s)', roomId, text)
+    const room = await this.getRoom(roomId) as PuppetRoom
+    const [inviteeName, inviterName] = text.trim().split(/通过扫描|分享的二维码加入群聊/).filter(v => v)
+    const inviter = await this.findMemberByNickName(inviterName, room)
+    if (!inviter) {
+      log.error(`handleQrCodeJoin: inviter ${inviterName} not found`)
+      return
+    }
+    // TODO: 扫码加群的新成员有可能立即获取不到，也许需要等待一会，需要再观察一下
+    const invitee = await this.findMemberByNickName(inviteeName, room)
+    if (!invitee) {
+      log.error(`handleQrCodeJoin: invitee ${inviteeName} not found`)
+      if (retries <= 0)
+        return
+      log.verbose(`handleQrCodeJoin: retrying ${retries} times`)
+      await setTimeout(1000)
+      await this.handleQrCodeJoin(roomId, text, retries - 1)
+      return
+    }
+    this.emit('room-join', { inviteeIdList: [invitee.id], inviterId: inviter.id, roomId, timestamp: Date.now() })
+  }
+
+  /**
+   * 处理群成员邀请加入事件
+   *
+   * @example `你邀请"小茸茸"加入了群聊`
+   * @example `"小茸茸"邀请"小茸茸"加入了群聊`
+   * @example `"小茸茸"邀请"小茸茸1、小茸茸2"加入了群聊`
+   */
+  private async handleInviteJoin(roomId: string, text: string) {
+    log.verbose('PuppetBridge', 'handleInviteJoin(%s, %s)', roomId, text)
+    const room = await this.getRoom(roomId) as PuppetRoom
+    const [inviterName, ...inviteeNameList] = text.trim().split(/邀请|、|加入了群聊/).filter(v => v)
+    const inviter = await this.findMemberByNickName(inviterName, room)
+    if (!inviter) {
+      log.error(`handleInviteJoin: operator ${inviterName} not found`)
+      return
+    }
+    const inviteeIdListPromises = inviteeNameList.map(async (name) => {
+      const member = await this.findMemberByNickName(name, room)
+      return member?.id as string
+    })
+    const inviteeIdList = (await Promise.all(inviteeIdListPromises)).filter(v => v)
+    if (!inviteeIdList.length) {
+      log.error(`handleInviteJoin: invitee ${inviteeNameList} not found`)
+      return
+    }
+    this.emit('room-join', { inviteeIdList, inviterId: inviter.id, roomId, timestamp: Date.now() })
+  }
+
+  /**
+   * 被邀请入群消息处理
+   */
   private inviteMsgHandler = (message: Message) => {
     log.verbose('PuppetBridge', 'inviteMsgHandler()  message %s', JSON.stringify(message))
 
@@ -1122,41 +1204,20 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     return type === 14 && message.text?.includes('邀请你加入群聊')
   }
 
-  private findMemberByName = (name: string, room: PuppetRoom) => {
+  private findMemberByRoomAliasOrName = (name: string, room: PuppetRoom) => {
     const members = room.members || []
-    return members.find(member => member.name === name)
+    return members.find(member => member.roomAlias === name || member.name === name)
   }
 
-  private findMemberByUserName = async (userName: string, room: PuppetRoom) => {
+  private findMemberByNickName = async (userName: string, room: PuppetRoom) => {
     const name = userName.split(/[“”"]/)[1] || ''
-    if (!this.findMemberByName(name, room)) {
+    if (!this.findMemberByRoomAliasOrName(name, room)) {
       await this.updateRoomPayload(room, true)
     }
     room = await this.roomStorage.getItem(room.id) as PuppetRoom
     if (!room)
       return
-    return this.findMemberByName(name, room)
-  }
-
-  private getOpsRelationship = async ([left, right]: string[], room: PuppetRoom) => {
-    const findMember = async (name: string) => {
-      if (!name)
-        return
-
-      if (name === '你') {
-        return this.currentUserId
-      }
-      const member = await this.findMemberByUserName(name, room)
-      if (!member)
-        return
-
-      return member.id
-    }
-
-    return {
-      leftId: await findMember(left),
-      rightId: await findMember(right),
-    }
+    return this.findMemberByRoomAliasOrName(name, room)
   }
 
   private formatContact<T extends Exclude<ReturnType<typeof this.agent.getContactInfo>, undefined>>(contactInfo: T): PuppetContact {
