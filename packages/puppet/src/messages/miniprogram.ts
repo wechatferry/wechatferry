@@ -1,4 +1,3 @@
-import type { WxMsg } from '@wechatferry/core'
 import type * as PUPPET from 'wechaty-puppet'
 import { xmlToJson } from '../utils'
 

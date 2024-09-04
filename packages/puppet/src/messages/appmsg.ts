@@ -1,4 +1,4 @@
-import type { WechatAppMessageType, WechatMessageType } from '@wechatferry/core'
+import type { WechatAppMessageType } from '@wechatferry/core'
 import { xmlToJson } from '../utils'
 
 interface AppMsgXmlSchema {
