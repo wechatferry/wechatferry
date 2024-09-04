@@ -680,50 +680,6 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     return await xmlDecrypt(message?.text || '', message?.type || PUPPET.types.Message.Unknown)
   }
 
-  private mentionTextParser(message: string): { mentions: string[], message: string } {
-    const mentionRegex = /@\[mention:([^\]]+)\]/g
-    const mentions = message.match(mentionRegex) || []
-
-    const mentionIds = mentions.map((mention) => {
-      const match = mention.match(/@\[mention:([^\]]+)\]/)
-      return match && match.length > 1 ? match[1] : null
-    })
-
-    const text = message.replace(mentionRegex, '').trim()
-
-    return {
-      mentions: mentionIds.filter(id => id) as string[],
-      message: text,
-    }
-  }
-
-  private async getMentionText(roomId: string, mentions: string[]) {
-    let mentionText = ''
-
-    if (mentions.length === 0)
-      return mentionText
-
-    const chatroom = await this.roomStorage.getItem(roomId)
-    if (!chatroom)
-      throw new Error('chatroom not found')
-
-    const chatroomMembers = chatroom.members
-
-    mentionText = mentions.reduce((acc, mentionId) => {
-      chatroomMembers.filter((member) => {
-        if (member.id === mentionId) {
-          acc += `@${member.name} `
-          return true
-        }
-        return false
-      })
-
-      return acc
-    }, '')
-
-    return mentionText
-  }
-
   // #endregion
 
   // #region Send
@@ -879,6 +835,20 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
     const { content, type } = await normalizedMsg(message)
 
+    let mentionIdList: string[] = []
+
+    try {
+      if (type === PUPPET.types.Message.Text) {
+        const xml = await xmlToJson<{ msgsource?: { atuserlist?: string[] } }>(message.xml)
+        if (xml?.msgsource?.atuserlist?.length)
+          return
+        mentionIdList = xml.msgsource?.atuserlist?.map(v => v.trim()) || []
+      }
+    }
+    catch (e) {
+      log.error('PuppetBridge', 'msgHandler() exception %s', (e as Error).stack)
+    }
+
     const payload = {
       type,
       id: message.id.toString(),
@@ -887,6 +857,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       listenerId: roomId ? '' : listenerId,
       timestamp: Date.now(),
       roomId,
+      mentionIdList,
     } as Message
 
     if (roomId && !await this.roomStorage.hasItem(roomId)) {
@@ -895,12 +866,12 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       } as PuppetRoom)
     }
 
-    if (this.isRoomOps(message)) {
-      await this.roomMsgHandler(payload)
-    }
-    else if (this.isInviteMsg(payload)) {
+    if (this.isInviteMsg(payload)) {
       this.inviteMsgHandler(payload)
       await this.messageStorage.setItem(payload.id, payload)
+    }
+    else if (this.isRoomOps(message)) {
+      await this.roomMsgHandler(payload)
     }
     else {
       await this.messageStorage.setItem(payload.id, payload)
@@ -1032,7 +1003,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       log.error(`handleQrCodeJoin: invitee ${inviteeName} not found`)
       if (retries <= 0)
         return
-      log.verbose(`handleQrCodeJoin: retrying ${retries} times`)
+      log.error(`handleQrCodeJoin: retrying ${retries} times`)
       await setTimeout(1000)
       await this.handleQrCodeJoin(roomId, text, retries - 1)
       return
@@ -1199,9 +1170,15 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     return [10000, 10002].includes(type)
   }
 
+  /**
+   * 判断是否是邀请入群消息
+   *
+   * @example `"小茸茸"邀请你和"小茸茸"加入了群聊`
+   * @example `"小茸茸"邀请你加入了群聊`
+   */
   private isInviteMsg = (message: Message) => {
     const type = message.type.valueOf()
-    return type === 14 && message.text?.includes('邀请你加入群聊')
+    return type === 10000 && /邀请你和?.*?加入了群聊/.test(message.text ?? '')
   }
 
   private findMemberByRoomAliasOrName = (name: string, room: PuppetRoom) => {
@@ -1260,6 +1237,50 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       memberIdList: roomInfo.memberIdList,
       members,
     }
+  }
+
+  private mentionTextParser(message: string): { mentions: string[], message: string } {
+    const mentionRegex = /@\[mention:([^\]]+)\]/g
+    const mentions = message.match(mentionRegex) || []
+
+    const mentionIds = mentions.map((mention) => {
+      const match = mention.match(/@\[mention:([^\]]+)\]/)
+      return match && match.length > 1 ? match[1] : null
+    })
+
+    const text = message.replace(mentionRegex, '').trim()
+
+    return {
+      mentions: mentionIds.filter(id => id) as string[],
+      message: text,
+    }
+  }
+
+  private async getMentionText(roomId: string, mentions: string[]) {
+    let mentionText = ''
+
+    if (mentions.length === 0)
+      return mentionText
+
+    const chatroom = await this.roomStorage.getItem(roomId)
+    if (!chatroom)
+      throw new Error('chatroom not found')
+
+    const chatroomMembers = chatroom.members
+
+    mentionText = mentions.reduce((acc, mentionId) => {
+      chatroomMembers.filter((member) => {
+        if (member.id === mentionId) {
+          acc += `@${member.name} `
+          return true
+        }
+        return false
+      })
+
+      return acc
+    }, '')
+
+    return mentionText
   }
 
   // #endregion

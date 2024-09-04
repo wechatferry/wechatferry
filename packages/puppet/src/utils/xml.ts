@@ -2,7 +2,7 @@ import xml2js, { type ParserOptions } from 'xml2js'
 import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 
-export async function xmlToJson(xml: string, options?: ParserOptions): Promise<any> {
+export async function xmlToJson<T extends Record<string, any>>(xml: string, options?: ParserOptions): Promise<T> {
   const posIdx = xml.indexOf('<')
   if (posIdx !== 0)
     xml = xml.slice(posIdx)
