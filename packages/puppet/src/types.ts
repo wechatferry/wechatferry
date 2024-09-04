@@ -1,6 +1,7 @@
 import type { Storage, StorageValue } from 'unstorage'
 import type {
   Contact,
+  Message,
   Room,
   RoomMember,
 } from 'wechaty-puppet/payloads'
@@ -13,6 +14,9 @@ export interface PuppetRoom extends Room {
 
 export interface PuppetContact extends Contact {
   tags: string[]
+}
+export type PuppetMessage = Message & {
+  isRefer: boolean
 }
 
 export interface PuppetWcferryUserOptions {

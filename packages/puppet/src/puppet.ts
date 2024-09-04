@@ -17,8 +17,9 @@ import type {
 
 import type { UserInfo, WxMsg } from '@wechatferry/core'
 import { WechatferryAgent } from '@wechatferry/agent'
-import type { PrefixStorage, PuppetContact, PuppetRoom, PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
-import { normalizedMsg, xmlDecrypt, xmlToJson } from './utils'
+import type { PrefixStorage, PuppetContact, PuppetMessage, PuppetRoom, PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
+import { xmlDecrypt, xmlToJson } from './utils'
+import { parseAppmsgMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, wcfMessageToWechaty } from './messages'
 
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {
   return {
@@ -36,7 +37,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   storage: Storage<StorageValue>
   private contactStorage: PrefixStorage<PuppetContact>
   private roomStorage: PrefixStorage<PuppetRoom>
-  private messageStorage: PrefixStorage<Message>
+  private messageStorage: PrefixStorage<PuppetMessage>
 
   constructor(options: PuppetWcferryUserOptions = {}) {
     super()
@@ -46,7 +47,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     this.storage = storage
     this.contactStorage = this.createPrefixStorage<PuppetContact>(storage, 'contact')
     this.roomStorage = this.createPrefixStorage<PuppetRoom>(storage, 'room')
-    this.messageStorage = this.createPrefixStorage<Message>(storage, 'message')
+    this.messageStorage = this.createPrefixStorage<PuppetMessage>(storage, 'message')
   }
 
   override login(contactId: string) {
@@ -591,19 +592,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     log.verbose('PuppetBridge', 'messageEmoticon(%s)', message.id)
 
     try {
-      const content = await xmlToJson(message.text || '', { mergeAttrs: true, explicitArray: false })
-
-      const aeskey = content.msg.emoji.aeskey
-      const cdnUrl = content.msg.emoji.cdnurl
-
-      const emoticonBox = FileBox.fromUrl(cdnUrl, {
-        name: `message_${aeskey}.png`,
-      })
-
-      emoticonBox.metadata = {
-        payload: content,
-        type: 'emoticon',
-      }
+      const emotionPayload = await parseEmotionMessagePayload(message)
+      const emoticonBox = FileBox.fromUrl(emotionPayload.cdnurl, { name: `message-${message.id}-emoticon.jpg` })
 
       return emoticonBox
     }
@@ -655,7 +645,13 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     if (!message)
       throw new Error('message not found')
 
-    return await xmlDecrypt(message?.text || '', message?.type || PUPPET.types.Message.Unknown)
+    const appPayload = await parseAppmsgMessagePayload(message.text || '')
+    return {
+      description: appPayload.des,
+      thumbnailUrl: appPayload.thumburl,
+      title: appPayload.title,
+      url: appPayload.url,
+    }
   }
 
   override async messageMiniProgram(messageId: string): Promise<PUPPET.payloads.MiniProgram>
@@ -666,7 +662,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     if (!message)
       throw new Error('message not found')
 
-    return await xmlDecrypt(message?.text || '', message?.type || PUPPET.types.Message.Unknown)
+    return parseMiniProgramMessagePayload(message)
   }
 
   override async messageLocation(messageId: string): Promise<PUPPET.payloads.Location>
@@ -823,43 +819,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   async msgHandler(message: WxMsg) {
-    const roomId = message.is_group ? message.roomid : ''
-    const talkerId = message.sender
-    const listenerId = message.sender
-
-    if (talkerId) {
-      await this.updateContactPayload({
-        id: talkerId,
-      } as PuppetContact)
-    }
-
-    const { content, type } = await normalizedMsg(message)
-
-    const payload = {
-      type,
-      id: message.id.toString(),
-      text: content,
-      talkerId,
-      listenerId: roomId ? '' : listenerId,
-      timestamp: Date.now(),
-      roomId,
-    } as Message
-
-    if (type === PUPPET.types.Message.Text) {
-      try {
-        const xml = await xmlToJson<{ msgsource?: { atuserlist?: string[] } }>(message.xml)
-        if (xml?.msgsource?.atuserlist?.length) {
-          const mentionIdList = xml.msgsource?.atuserlist?.map(v => v.trim()) || []
-          if (mentionIdList.length) {
-            // @ts-expect-error untyped
-            payload.mentionIdList = mentionIdList
-          }
-        }
-      }
-      catch (e) {
-        log.error('PuppetBridge', 'msgHandler() exception %s', (e as Error).stack)
-      }
-    }
+    const payload = await wcfMessageToWechaty(this, message)
+    const { roomId } = payload
 
     if (roomId && !await this.roomStorage.hasItem(roomId)) {
       await this.updateRoomPayload({
