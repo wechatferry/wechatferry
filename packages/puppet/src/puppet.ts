@@ -980,7 +980,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
    * @example `"小茸茸"邀请"小茸茸"加入了群聊`
    * @example `"小茸茸"邀请"小茸茸1、小茸茸2"加入了群聊`
    */
-  private async handleInviteJoin(roomId: string, text: string) {
+  private async handleInviteJoin(roomId: string, text: string, retries = 5) {
     log.verbose('PuppetBridge', 'handleInviteJoin(%s, %s)', roomId, text)
     const room = await this.getRoom(roomId) as PuppetRoom
     const [inviterName, ...inviteeNameList] = text.trim().split(/邀请|、|加入了群聊/).filter(v => v)
@@ -996,6 +996,11 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     const inviteeIdList = (await Promise.all(inviteeIdListPromises)).filter(v => v)
     if (!inviteeIdList.length) {
       log.error(`handleInviteJoin: invitee ${inviteeNameList} not found`)
+      if (retries <= 0)
+        return
+      log.error(`handleInviteJoin: retrying ${retries} times`)
+      await setTimeout(1000)
+      await this.handleInviteJoin(roomId, text, retries - 1)
       return
     }
     this.emit('room-join', { inviteeIdList, inviterId: inviter.id, roomId, timestamp: Date.now() })
