@@ -2,7 +2,7 @@
 
 [Wechaty](https://wechaty.js.org) 应该是最著名的微信机器人框架之一，它提供了友好、通用的 API 并允许自定义 Puppet，尽管其已经不再积极维护，但仍然非常值得推荐使用。
 
-@wechatferry/puppet 使用 @wechatferry/agent 并参考 [wechaty-puppet-xp](https://github.com/wechaty/wechaty-puppet-xp) 实现了 wcf 的所有功能，更多请阅读[API文档](https://www.jsdocs.io/package/@wechatferry/puppet)
+@wechatferry/puppet 使用 @wechatferry/agent 并参考 [puppet-padlocal](https://github.com/wechaty/puppet-padlocal/) 实现了 wcf 的所有功能，更多请阅读[API文档](https://www.jsdocs.io/package/@wechatferry/puppet)
 
 ## 安装
 
