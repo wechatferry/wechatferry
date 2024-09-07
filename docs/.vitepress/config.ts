@@ -29,6 +29,13 @@ export default defineConfig({
         ],
       },
       {
+        text: '插件',
+        link: '/plugins',
+        items: [
+          { text: '安全模式', link: '/plugins/safe-mode' },
+        ],
+      },
+      {
         text: 'API',
         items: [
           { text: '@wechatferry/core', link: 'https://www.jsdocs.io/package/@wechatferry/core' },
@@ -36,6 +43,7 @@ export default defineConfig({
           { text: '@wechatferry/puppet', link: 'https://www.jsdocs.io/package/@wechatferry/puppet' },
           { text: '@wechatferry/nuxt', link: 'https://www.jsdocs.io/package/@wechatferry/nuxt' },
           { text: '@wechatferry/robot', link: 'https://www.jsdocs.io/package/@wechatferry/robot' },
+          { text: '@wechatferry/plugins', link: 'https://www.jsdocs.io/package/@wechatferry/plugins' },
         ],
       },
     ],

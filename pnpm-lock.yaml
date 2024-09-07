@@ -159,6 +159,9 @@ importers:
       '@nuxt/kit':
         specifier: ^3.13.0
         version: 3.13.0(magicast@0.3.5)(rollup@4.21.2)
+      '@wechatferry/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@wechatferry/puppet':
         specifier: workspace:*
         version: link:../puppet
@@ -237,6 +240,24 @@ importers:
         specifier: ^3.13.0
         version: 3.13.0(@parcel/watcher@2.4.1)(@types/node@22.5.1)(eslint@9.9.1(jiti@1.21.6))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.21.2)(terser@5.31.6)(typescript@5.5.4)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))(xml2js@0.6.2)
 
+  packages/plugins:
+    dependencies:
+      '@wechatferry/core':
+        specifier: workspace:*
+        version: link:../core
+      file-box:
+        specifier: ^1.4.15
+        version: 1.4.15
+      knex:
+        specifier: ^3.1.0
+        version: 3.1.0
+      p-throttle:
+        specifier: ^6.2.0
+        version: 6.2.0
+      wechaty-puppet:
+        specifier: ^1.20.2
+        version: 1.20.2(rxjs@7.8.1)
+
   packages/puppet:
     dependencies:
       '@wechatferry/agent':
@@ -289,6 +310,9 @@ importers:
       '@wechatferry/core':
         specifier: workspace:*
         version: link:../core
+      '@wechatferry/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@wechatferry/puppet':
         specifier: workspace:*
         version: link:../puppet
@@ -5252,6 +5276,10 @@ packages:
   p-locate@5.0.0:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
+
+  p-throttle@6.2.0:
+    resolution: {integrity: sha512-NCKkOVj6PZa6NiTmfvGilDdf6vO1rFCD3KDnkHko8dTOtkpk4cSR/VTAhhLMG9aiQ7/A9HYgEDNmxzf6hxzR3g==}
+    engines: {node: '>=18'}
 
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
@@ -12934,6 +12962,8 @@ snapshots:
   p-locate@5.0.0:
     dependencies:
       p-limit: 3.1.0
+
+  p-throttle@6.2.0: {}
 
   p-try@2.2.0: {}
 
