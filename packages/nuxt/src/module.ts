@@ -7,6 +7,7 @@ import { setupRPC } from './server-rpc'
 
 export interface ModuleOptions {
   debug: boolean
+  safeMode: boolean
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -40,7 +41,10 @@ export default defineNuxtModule<ModuleOptions>({
 
 declare module 'nuxt/schema' {
   interface RuntimeConfig {
-    wcferry: object
+    wcferry: {
+      safeMode: boolean
+      debug: boolean
+    }
   }
 }
 

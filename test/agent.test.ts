@@ -61,15 +61,6 @@ it('image', () => {
   wcf.sendImage(id, FileBox.fromBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj2D751n8AB00DJKfruzgAAAAASUVORK5CYII=', 'test.png'))
 })
 
-it('safe', async () => {
-  wcf.safe = true
-  wcf.sendText('filehelper', 'hello1')
-  await wcf.sendText('filehelper', 'hello2')
-  wcf.sendText('user1', 'hello3')
-  await wcf.sendText('user1', 'hello4')
-  wcf.safe = false
-}, { timeout: 1000 * 60 * 2 })
-
 // afterAll(() => {
 //   wcf.stop()
 // })

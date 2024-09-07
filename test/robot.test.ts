@@ -2,21 +2,42 @@ import { WechatyBuilder } from 'wechaty'
 import { beforeAll, expect, it } from 'vitest'
 import { WechatferryPuppet } from '../packages/puppet/src'
 import { WechatferryAgent } from '../packages/agent/src'
+import { createSafeModePuppet } from '../packages/plugins/src'
+import { Wechatferry } from '../packages/core/src'
 
-const agent = new WechatferryAgent()
-const puppet = new WechatferryPuppet({
-  agent,
+const core = new Proxy(new Wechatferry(), {
+  get(target, prop, receiver) {
+    if (typeof prop === 'string') {
+      if (prop !== 'send' && prop.startsWith('send')) {
+        return (...args: any[]) => {
+          console.error(JSON.stringify(args))
+        }
+      }
+
+      if (prop === 'getSelfWxid') {
+        return () => 'filehelper'
+      }
+    }
+    return Reflect.get(target, prop, receiver)
+  },
 })
+
+const agent = new WechatferryAgent({
+  wcf: core,
+})
+const puppet = createSafeModePuppet(new WechatferryPuppet({
+  agent,
+}))
 const bot = WechatyBuilder.build({
   puppet,
 })
 
-beforeAll(() => {
-  return new Promise((r) => {
-    bot.start()
-    bot.once('ready', r)
-  })
-})
+// beforeAll(() => {
+//   return new Promise((r) => {
+//     bot.start()
+//     bot.once('ready', r)
+//   })
+// })
 
 const fakeMessage = {
   is_self: false,
@@ -89,3 +110,16 @@ it.skip('room-leave', async () => {
   expect(user.name()).equal('小茸茸')
   expect(remover.name()).equal('小茸茸')
 })
+
+it('safeMode', async () => {
+  let count = 10
+  while (count--) {
+    await puppet.messageSend('filehelper', {
+      type: 'Text',
+      payload: {
+        text: 'hello',
+        mentions: [],
+      },
+    })
+  }
+}, { timeout: 10000 * 6 })

@@ -1,0 +1,53 @@
+{
+  "name": "@wechatferry/plugins",
+  "type": "module",
+  "version": "0.0.8",
+  "description": "wechatferry plugins",
+  "author": "mrrhq <sanhua@himrr.com>",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/mrrhq",
+  "homepage": "https://github.com/wechatferry/wechatferry#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechatferry/wechatferry"
+  },
+  "bugs": "https://github.com/wechatferry/wechatferry/issues",
+  "keywords": [
+    "wechat",
+    "wcferry",
+    "robot",
+    "plugins"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "dependencies": {
+    "@wechatferry/core": "workspace:*",
+    "file-box": "^1.4.15",
+    "knex": "^3.1.0",
+    "p-throttle": "^6.2.0",
+    "wechaty-puppet": "^1.20.2"
+  }
+}

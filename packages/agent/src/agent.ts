@@ -5,7 +5,6 @@ import os from 'node:os'
 import type { Wechatferry, wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
-import type { AnyFunction, ThrottledFunction } from 'p-throttle'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
 import { decodeBytesExtra, getWxidFromBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
@@ -14,7 +13,6 @@ import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   private timer: number | null = null
   wcf: Wechatferry
-  recipientThrottles: Record<string, (function_: AnyFunction) => ThrottledFunction<AnyFunction>> = {}
 
   constructor(options: WechatferryAgentUserOptions = {}) {
     super()
