@@ -50,8 +50,13 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     log.verbose('WechatferryPuppet', 'login(%s)', userId)
     await this.loadContactList()
     await this.loadRoomList()
-    await this.updateContactCache(userId)
-    super.login(userId)
+    const user = await this.updateContactCache(userId)
+    if (!user) {
+      throw new Error(
+        `login(${userId}) called failed: User not found.`,
+      )
+    }
+    super.login(user.UserName)
     this.emit('ready')
     this.agent.on('message', this.onMessage.bind(this))
   }
@@ -70,16 +75,17 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   async onMessage(message: WechatferryAgentEventMessage) {
     const messageId = message.id
-    await this.cacheManager.setMessage(messageId, message)
     const event = await parseEvent(this, message)
     const roomId = message.roomid
     log.verbose('WechatferryPuppet', 'onMessage() event %s', JSON.stringify(event))
     switch (event.type) {
       case EventType.Message: {
+        await this.cacheManager.setMessage(messageId, message)
         this.emit('message', { messageId })
         break
       }
       case EventType.Post: {
+        await this.cacheManager.setMessage(messageId, message)
         this.emit('post', event.payload)
         break
       }
@@ -100,6 +106,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       }
       case EventType.RoomJoin: {
         this.emit('room-join', event.payload)
+        // DO NOT UPDATE LISTS HERE
         break
       }
 
