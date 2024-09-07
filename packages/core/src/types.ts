@@ -73,6 +73,7 @@ export enum WechatAppMessageType {
 }
 
 export enum WechatMessageType {
+  Moment = 0,
   Text = 1,
   Image = 3,
   Voice = 34,
