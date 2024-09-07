@@ -1,5 +1,5 @@
 import { WechatyBuilder } from 'wechaty'
-import { beforeAll, expect, it } from 'vitest'
+import { expect, it } from 'vitest'
 import { WechatferryPuppet } from '../packages/puppet/src'
 import { WechatferryAgent } from '../packages/agent/src'
 import { createSafeModePuppet } from '../packages/plugins/src'
