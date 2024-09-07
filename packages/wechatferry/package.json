@@ -30,6 +30,10 @@
     "./puppet": {
       "types": "./dist/puppet.d.mts",
       "default": "./dist/puppet.mjs"
+    },
+    "./plugins": {
+      "types": "./dist/plugins.d.mts",
+      "default": "./dist/plugins.mjs"
     }
   },
   "main": "dist/index.mjs",
@@ -45,6 +49,7 @@
   "dependencies": {
     "@wechatferry/agent": "workspace:*",
     "@wechatferry/core": "workspace:*",
+    "@wechatferry/plugins": "workspace:*",
     "@wechatferry/puppet": "workspace:*"
   }
 }
