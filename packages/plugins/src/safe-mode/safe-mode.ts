@@ -1,7 +1,44 @@
 import type * as PUPPET from 'wechaty-puppet'
+import type { Options } from 'p-throttle'
 import pThrottle from 'p-throttle'
 
-export function createSafeModePuppet<T extends PUPPET.Puppet>(puppet: T) {
+interface SafeModeOptions {
+  /** 全局节流配置 */
+  globalThrottleOptions?: Options
+  /** 会话节流配置 */
+  throttleOptions?: Options
+  /**
+   * 不同会话最小间隔
+   * @default 3000
+   */
+  minIntervalBetweenConversations?: number
+  /**
+   *  不同会话最大间隔
+   * @default 5000
+   */
+  maxIntervalBetweenConversations?: number
+}
+
+function resolvedSafeModePuppetOptions({ globalThrottleOptions, throttleOptions, ...options }: SafeModeOptions): Required<SafeModeOptions> {
+  return {
+    globalThrottleOptions: {
+      limit: 40,
+      interval: 60000,
+      ...globalThrottleOptions,
+    },
+    throttleOptions: {
+      limit: 1,
+      interval: 1000,
+      ...throttleOptions,
+    },
+    minIntervalBetweenConversations: 3000,
+    maxIntervalBetweenConversations: 5000,
+    ...options,
+  }
+}
+
+export function createSafeModePuppet<T extends PUPPET.Puppet>(puppet: T, options: SafeModeOptions = {}) {
+  const { globalThrottleOptions, throttleOptions, minIntervalBetweenConversations, maxIntervalBetweenConversations } = resolvedSafeModePuppetOptions(options)
   // 记录上次发送消息的 conversationId
   let lastConversationId: string | null = null
 
@@ -9,28 +46,22 @@ export function createSafeModePuppet<T extends PUPPET.Puppet>(puppet: T) {
   const throttles = new Map()
 
   // 每分钟最多只能发 40 条消息的 throttle
-  const globalThrottle = pThrottle({
-    limit: 40,
-    interval: 60000, // 60秒内最多40次
-  })
+  const globalThrottle = pThrottle(globalThrottleOptions)
 
   // 根据不同的对象进行间隔发送的节流器生成
   function getThrottle(conversationId: string) {
     if (throttles.has(conversationId)) {
       return throttles.get(conversationId)
     }
-    const throttle = pThrottle({
-      limit: 1, // 每次只能发一条消息
-      interval: 3000, // 设置间隔
-    })
+    const throttle = pThrottle(throttleOptions)
     throttles.set(conversationId, throttle)
     return throttle
   }
 
-  // 模拟不同对象之间的延迟3~5秒
+  // 模拟不同对象之间的延迟/秒
   async function applyDelayForDifferentConversations(conversationId: string) {
     if (lastConversationId !== conversationId) {
-      const delay = Math.random() * 2000 + 3000 // 3000ms到5000ms之间
+      const delay = Math.random() * (maxIntervalBetweenConversations - minIntervalBetweenConversations) + minIntervalBetweenConversations
       await new Promise(resolve => setTimeout(resolve, delay))
     }
     lastConversationId = conversationId
@@ -51,7 +82,7 @@ export function createSafeModePuppet<T extends PUPPET.Puppet>(puppet: T) {
 
           // 执行全局节流器逻辑
           const sendMessageGloballyThrottled = globalThrottle(async () => {
-            // 不同对象之间延迟 3~5 秒
+            // 不同对象之间延迟a~b秒
             await applyDelayForDifferentConversations(conversationId)
 
             // 应用单个对象的节流逻辑
