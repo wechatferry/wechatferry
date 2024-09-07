@@ -5,7 +5,6 @@ import type { WechatferryAgentOptions, WechatferryAgentUserOptions } from './typ
 export function resolvedWechatferryAgentOptions(options: WechatferryAgentUserOptions): WechatferryAgentOptions {
   return {
     wcf: new Wechatferry(),
-    safe: false,
     ...options,
   }
 }
