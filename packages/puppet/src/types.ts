@@ -1,4 +1,4 @@
-import type { Storage, StorageValue } from 'unstorage'
+import type { Storage } from 'unstorage'
 import type {
   Contact,
   Message,
@@ -15,6 +15,7 @@ export interface PuppetRoom extends Room {
 export interface PuppetContact extends Contact {
   tags: string[]
 }
+
 export type PuppetMessage = Message & {
   isRefer: boolean
 }
@@ -28,11 +29,3 @@ export interface PuppetWcferryUserOptions {
 }
 
 export interface PuppetWcferryOptions extends Required<PuppetWcferryUserOptions> { }
-
-export interface PrefixStorage<T extends StorageValue> extends Storage<T> {
-  getItemsMap: (base?: string) => Promise<{
-    key: string
-    value: T
-  }[]>
-  getItemsList: (base?: string) => Promise<T[]>
-}

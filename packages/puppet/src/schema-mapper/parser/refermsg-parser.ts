@@ -1,11 +1,11 @@
 import type { WxMsg } from '@wechatferry/core'
 import { WechatAppMessageType, WechatMessageType } from '@wechatferry/core'
 import * as PUPPET from 'wechaty-puppet'
-import { type ReferMsgPayload, parseAppmsgMessagePayload } from '../appmsg'
 import type { PuppetMessage } from '../../types'
+import { type ReferMsgPayload, parseAppmsgMessagePayload } from '../../messages'
 import type { MessageParser, MessageParserContext } from './parser'
 
-export const referMsgParser: MessageParser = async (_webMessageRawPayload: WxMsg, ret: PuppetMessage, context: MessageParserContext) => {
+export const referMsgParser: MessageParser = async (_message: WxMsg, ret: PuppetMessage, context: MessageParserContext) => {
   if (!context.appMessagePayload || context.appMessagePayload.type !== WechatAppMessageType.ReferMsg) {
     return ret
   }

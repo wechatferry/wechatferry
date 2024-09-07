@@ -5,6 +5,7 @@ import type { PuppetMessage } from '../../types'
 import type { MessageParser, MessageParserContext } from './parser'
 
 const TypeMappings: { [key: number]: PUPPET.types.Message } = {
+  [WechatMessageType.Moment]: PUPPET.types.Message.Post,
   [WechatMessageType.Text]: PUPPET.types.Message.Text,
   [WechatMessageType.Image]: PUPPET.types.Message.Image,
   [WechatMessageType.Voice]: PUPPET.types.Message.Audio,

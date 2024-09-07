@@ -1,5 +1,5 @@
-import type { WxMsg } from '@wechatferry/core'
 import type * as PUPPET from 'wechaty-puppet'
+import type { WechatferryAgentEventMessage } from '@wechatferry/agent'
 import type { PuppetMessage } from '../types'
 import { executeMessageParsers } from './parser'
 
@@ -10,7 +10,7 @@ function rewriteMsgContent(message: string) {
   return content
 }
 
-export async function wcfMessageToWechaty(puppet: PUPPET.Puppet, message: WxMsg): Promise<PuppetMessage> {
+export async function wechatferryMessageToWechaty(puppet: PUPPET.Puppet, message: WechatferryAgentEventMessage): Promise<PuppetMessage> {
   let text = message.content
   const roomId = message.is_group ? message.roomid : ''
   const talkerId = message.sender
