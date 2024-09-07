@@ -79,6 +79,10 @@ export class WechatferryPuppet extends PUPPET.Puppet {
         this.emit('message', { messageId })
         break
       }
+      case EventType.Post: {
+        this.emit('post', event.payload)
+        break
+      }
       case EventType.Friendship: {
         const friendship: PUPPET.payloads.Friendship = event.payload
         await this.cacheManager.setFriendship(messageId, friendship)

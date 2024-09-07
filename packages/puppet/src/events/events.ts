@@ -5,6 +5,7 @@ import type { WechatferryPuppet } from '../puppet'
 
 export enum EventType {
   Message,
+  Post,
   Friendship,
   RoomInvite,
   RoomJoin,
@@ -14,6 +15,7 @@ export enum EventType {
 
 export interface EventPayloadSpec {
   [EventType.Message]: WechatferryAgentEventMessage
+  [EventType.Post]: PUPPET.payloads.EventPost
   [EventType.Friendship]: PUPPET.payloads.Friendship
   [EventType.RoomInvite]: PUPPET.payloads.RoomInvitation
   [EventType.RoomJoin]: PUPPET.payloads.EventRoomJoin
