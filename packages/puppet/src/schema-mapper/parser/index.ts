@@ -1,8 +1,8 @@
-import { appMsgParser } from './appMsgParser'
+import { appMsgParser } from './appmsg-parser'
 import { addMessageParser, executeMessageParsers } from './parser'
-import { referMsgParser } from './referMsgParser'
-import { roomParser } from './roomParser'
-import { typeParser } from './typeParser'
+import { referMsgParser } from './refermsg-parser'
+import { roomParser } from './room-parser'
+import { typeParser } from './type-parser'
 
 addMessageParser(typeParser)
 addMessageParser(appMsgParser)

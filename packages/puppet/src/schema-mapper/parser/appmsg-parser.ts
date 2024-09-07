@@ -1,8 +1,8 @@
 import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 import { WechatAppMessageType, type WxMsg } from '@wechatferry/core'
-import { parseAppmsgMessagePayload } from '../appmsg'
 import type { PuppetMessage } from '../../types'
+import { parseAppmsgMessagePayload } from '../../messages'
 import type { MessageParser, MessageParserContext } from './parser'
 
 export const appMsgParser: MessageParser = async (message: WxMsg, ret: PuppetMessage, context: MessageParserContext) => {
