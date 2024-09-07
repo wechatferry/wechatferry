@@ -12,3 +12,7 @@ export const integrations: Integration[] = [
   { name: 'Wechaty', link: '/integrations/wechaty', icon: 'https://wechaty.js.org/img/wechaty-logo.svg' },
   { name: 'Nuxt', link: '/integrations/nuxt', icon: 'i-logos-nuxt-icon' },
 ]
+
+export const plugins: Integration[] = [
+  { name: '安全模式', link: '/plugins/safe-mode', icon: 'i-carbon:ai-governance-lifecycle' },
+]

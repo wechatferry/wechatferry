@@ -32,3 +32,9 @@ WechatFerry 提供了多种集成方式，如果你在用 Nuxt 的话，我推�
 若你想完全控制并自主实现，请使用 Node 集成。
 
 <ContentIntegrations />
+
+## 插件
+
+WechatFerry 从 v0.0.9 之后将逐步实现有趣、常用、有用的基于 Wechaty Plugins 或 Proxy 的插件，这些插件只适用于 Wechaty 或是对 @wechatferry/puppet 的扩展
+
+<ContentPlugins />
