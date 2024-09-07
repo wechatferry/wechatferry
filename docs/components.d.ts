@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     ContentIntegrations: typeof import('./.vitepress/theme/components/ContentIntegrations.vue')['default']
     ContentPlugins: typeof import('./.vitepress/theme/components/ContentPlugins.vue')['default']
-    copy: typeof import('./.vitepress/theme/components/ContentIntegrations copy.vue')['default']
     LinkGrid: typeof import('./.vitepress/theme/components/LinkGrid.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
