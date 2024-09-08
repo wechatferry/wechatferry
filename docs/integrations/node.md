@@ -1,6 +1,6 @@
 # Node.js
 
-适用于任何 Node.js 环境，内置强大且易用的Agent库，涵盖了绝大多数常用微信操作，更多说明请阅读[API 参考](https://www.jsdocs.io/package/@wechatferry/agent)
+适用于任何 Node.js 环境，内置强大且易用的Agent库，涵盖了绝大多数常用微信操作。
 
 ## 安装
 
@@ -35,9 +35,19 @@ agent.start()
 ```
 :::
 
+更多说明请阅读[API 参考](https://www.jsdocs.io/package/@wechatferry/agent)
+
 ## Core 和 SDK
 
-Core 内置 Socket 连接，并与 SDK 直接交互，如果你想要自己写常用操作，那么你也可以直接使用 core，其用法与 agent 几乎无异，更多请参考 [API 文档](https://www.jsdocs.io/package/@wechatferry/core)
+Core 内置了 Socket 连接，并通过 SDK 直接与 dll 交互，同时还支持自定义 SDK。
+
+::: tip
+始终推荐你使用 agent，而不是 core，除非你知道你在干什么。
+:::
+
+### Core
+
+如果你想要自己写常用操作，那么你也可以直接使用 core，其用法与 agent 几乎无异，更多请参考 [API 文档](https://www.jsdocs.io/package/@wechatferry/core)
 
 ::: code-group
   ```bash [pnpm]
@@ -68,6 +78,10 @@ wcf.start()
 ```
 :::
 
+更多说明请阅读[API 参考](https://www.jsdocs.io/package/@wechatferry/core)
+
+### SDK
+
 此外，core 包还直接导出了 SDK，若你想与 dll 直接交互，你也可以直接使用：
 
 ::: code-group
@@ -89,6 +103,59 @@ sdk.startRecvMessage()
 ```
 :::
 
-::: tip
-始终推荐你使用 agent，而不是 core，除非你知道你在干什么。
+当然，无需使用内置的 SDK，你可以自定义 SDK 直接连接现有的 wcf TCP 服务也是没问题的：
+
+::: code-group
+```ts twoslash [mysdk.ts]
+import EventEmitter from 'node:events'
+import type { Buffer } from 'node:buffer'
+import type { WechatferrySDKEventMap, WechatferrySDKImpl } from '@wechatferry/core'
+import { wcf } from '@wechatferry/core'
+import { Socket } from '@rustup/nng'
+import type { MessageRecvDisposable } from '@rustup/nng'
+
+export class MySDK extends EventEmitter<WechatferrySDKEventMap> implements WechatferrySDKImpl {
+  private messageRecvDisposable?: MessageRecvDisposable
+
+  init(debug?: boolean, port?: number) {
+    // init your sdk
+    return true
+  }
+
+  destroy() {
+    // stop your sdk
+    this.stopRecvMessage()
+  }
+
+  startRecvMessage() {
+    this.messageRecvDisposable = Socket.recvMessage(this.msgUrl, undefined, (err: unknown | undefined, buf: Buffer) => {
+      if (err) {
+        throw err
+      }
+      const rsp = wcf.Response.deserialize(buf)
+      this.emit('message', rsp.wxmsg)
+    })
+  }
+
+  stopRecvMessage() {
+    this.messageRecvDisposable?.dispose()
+    this.messageRecvDisposable = undefined
+  }
+
+  get isReceiving() {
+    return !!this.messageRecvDisposable
+  }
+
+  get cmdUrl() {
+    return 'tpc://...'
+  }
+
+  get msgUrl() {
+    return 'tpc://...'
+  }
+}
+const sdk = new MySDK()
+```
 :::
+
+更多说明请阅读[API 参考](https://www.jsdocs.io/package/@wechatferry/core)

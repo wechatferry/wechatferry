@@ -19,6 +19,9 @@
 :::
 
 ## 使用
+
+一个最简单的 DingDong 机器人，更多例子可以访问 [wechaty 示例代码](https://wechaty.gitbook.io/wechaty/v/zh/example)
+
 ::: code-group
 ```ts twoslash [index.ts]
 import { WechatferryPuppet } from '@wechatferry/puppet'
@@ -27,7 +30,11 @@ import { WechatyBuilder } from 'wechaty'
 const puppet = new WechatferryPuppet()
 const bot = WechatyBuilder.build({ puppet })
 
-bot.on('message', msg => console.log(msg))
-bot.start()
+bot.on('message', (msg) => {
+  msg.text() === 'ding' && msg.say('dong')
+})
+  .start()
 ```
 :::
+
+## 例子
