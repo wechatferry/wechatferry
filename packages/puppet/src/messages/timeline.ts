@@ -19,7 +19,7 @@ interface TimelineObject {
   sourceNickName: string
   statisticsData: string
   statExtStr: string
-  contentObject: ContentObject
+  ContentObject: ContentObject
   actionInfo: ActionInfo
   location: Location
   publicUserName: string
@@ -45,7 +45,7 @@ interface ContentObject {
 }
 
 interface MediaList {
-  media: Media[]
+  media?: Media | Media[]
 }
 
 interface Media {
@@ -78,7 +78,7 @@ interface Url {
     token: string
     enc_idx: string
   }
-  url: string
+  _: string
 }
 
 interface Thumb {
@@ -88,7 +88,7 @@ interface Thumb {
     token: string
     enc_idx: string
   }
-  url: string
+  _: string
 }
 
 interface Size {
@@ -131,22 +131,35 @@ export async function parseTimelineMessagePayload(messageXml: string) {
   const jsonPayload = await xmlToJson<TimelineXmlSchema>(messageXml)
   const { TimelineObject: timeline } = jsonPayload
   const builder = new xml2js.Builder()
-  const messages = timeline.contentObject.mediaList.media.map((media) => {
-    return {
-      content: media.description,
-      id: media.id,
-      is_group: false,
-      is_self: false,
-      roomid: '',
-      sender: timeline.username,
-      // TODO: support other types
-      type: WechatMessageType.Text,
-      ts: timeline.createTime,
-      extra: media.url.url,
-      thumb: media.thumb.url,
-      xml: builder.buildObject(media),
-    } as WechatferryAgentEventMessage
+
+  // Helper function to create a message object
+  const createMessage = (content: string, id: string, extra = '', thumb = '', xml = ''): WechatferryAgentEventMessage => ({
+    content,
+    id,
+    is_group: false,
+    is_self: false,
+    roomid: '',
+    sender: timeline.username,
+    ts: timeline.createTime,
+    type: WechatMessageType.Text, // TODO: support other types
+    extra,
+    thumb,
+    xml,
+    sign: '',
   })
+
+  const media = timeline.ContentObject.mediaList?.media
+  let messages: WechatferryAgentEventMessage[] = []
+  if (media) {
+    const mediaList = Array.isArray(media) ? media : [media]
+    messages = mediaList.map(media =>
+      createMessage(media.description, media.id, media.url?._ || '', media.thumb?._ || '', builder.buildObject(media)),
+    )
+  }
+
+  if (messages.length === 0) {
+    messages.push(createMessage(timeline.contentDesc || '', timeline.id))
+  }
 
   const postPayload: PUPPET.payloads.PostServer = {
     id: timeline.id,

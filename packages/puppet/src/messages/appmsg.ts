@@ -146,35 +146,8 @@ export interface AppMessagePayload {
   refermsg?: ReferMsgPayload
 }
 
-function expandSingleItemArrays(obj: any): any {
-  // 检查传入的对象是否是一个数组
-  if (Array.isArray(obj)) {
-    // 如果数组只有一个元素，则返回这个元素的展开形式
-    if (obj.length === 1) {
-      return expandSingleItemArrays(obj[0])
-    }
-    else {
-      // 如果数组有多个元素，则递归处理每个元素
-      return obj.map(item => expandSingleItemArrays(item))
-    }
-  }
-  else if (typeof obj === 'object' && obj !== null) {
-    // 如果是对象，则递归处理它的每个属性
-    const result = {}
-    for (const key in obj) {
-      // @ts-expect-error ignore
-      result[key] = expandSingleItemArrays(obj[key])
-    }
-    return result
-  }
-  else {
-    // 其他类型直接返回
-    return obj
-  }
-}
-
 export async function parseAppmsgMessagePayload(messageContent: string): Promise<AppMessagePayload> {
-  const appMsgXml: AppMsgXmlSchema = expandSingleItemArrays(await xmlToJson(messageContent))
+  const appMsgXml: AppMsgXmlSchema = await xmlToJson(messageContent)
   const { title, des, url, thumburl, type, md5, recorditem } = appMsgXml.msg.appmsg
 
   let appattach: AppAttachPayload | undefined

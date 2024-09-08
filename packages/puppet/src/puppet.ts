@@ -6,9 +6,9 @@ import { log } from 'wechaty-puppet'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import localPackageJson from '../package.json'
 import type { PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
-import { getMentionText, isRoomId, mentionTextParser, xmlDecrypt } from './utils'
+import { getMentionText, isRoomId, mentionTextParser } from './utils'
 import { CacheManager } from './cache-manager'
-import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
+import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
 import { wechatferryContactToWechaty, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
 import { EventType, parseEvent } from './events'
 
@@ -251,6 +251,18 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       )
     }
     const contact = await parseContactCardMessagePayload(message.text)
+    // push fake contact to cache
+    await this.cacheManager.setContact(contact.id, {
+      LabelIDList: '',
+      NickName: contact.name,
+      PYInitial: '',
+      Remark: contact.alias ?? '',
+      RemarkPYInitial: '',
+      smallHeadImgUrl: contact.avatar,
+      tags: contact.tags,
+      UserName: contact.id,
+      Alias: contact.alias,
+    })
     return contact.id
   }
 
@@ -274,7 +286,29 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   override async messageFile(messageId: string): Promise<FileBoxInterface> {
     const rawMessage = await this.messageRawPayload(messageId)
-    return this.agent.downloadFile(rawMessage)
+    const message = await this.messageRawPayloadParser(rawMessage)
+
+    switch (message.type) {
+      case PUPPET.types.Message.Image:
+        return this.messageImage(messageId, PUPPET.types.Image.HD)
+      case PUPPET.types.Message.Video:
+      case PUPPET.types.Message.Attachment:
+        return this.agent.downloadFile(rawMessage)
+
+      case PUPPET.types.Message.Emoticon: {
+        const emotionPayload = await parseEmotionMessagePayload(message)
+        const emoticonBox = FileBox.fromUrl(emotionPayload.cdnurl, { name: `message-${messageId}-emoticon.jpg` })
+        emoticonBox.metadata = {
+          payload: emotionPayload,
+          type: 'emoticon',
+        }
+        return emoticonBox
+      }
+    }
+
+    throw new Error(
+      `messageFile(${messageId}) called failed: Cannot get file from message type ${message.type}.`,
+    )
   }
 
   override async messageUrl(messageId: string): Promise<PUPPET.payloads.UrlLink> {
@@ -297,9 +331,11 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   override async messageLocation(messageId: string): Promise<PUPPET.payloads.Location> {
     log.verbose('WechatferryPuppet', 'messageLocation(%s)', messageId)
 
-    const message = await this.getMessagePayload(messageId)
+    // const message = await this.getMessagePayload(messageId)
 
-    return xmlDecrypt(message?.text || '', message?.type || PUPPET.types.Message.Unknown)
+    throw new Error(
+      `messageLocation(${messageId}) called failed: Method not supported.`,
+    )
   }
 
   override async messageMiniProgram(messageId: string): Promise<PUPPET.payloads.MiniProgram> {

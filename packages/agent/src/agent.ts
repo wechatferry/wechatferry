@@ -2,6 +2,7 @@ import EventEmitter from 'node:events'
 import process from 'node:process'
 import { setTimeout } from 'node:timers/promises'
 import os from 'node:os'
+import { existsSync } from 'node:fs'
 import type { Wechatferry, wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
@@ -199,14 +200,18 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     throw new Error(`downloadImage(${message}): download image timeout`)
   }
 
-  async downloadFile(message: WechatferryAgentEventMessage) {
+  async downloadFile(message: WechatferryAgentEventMessage, timeout = 30) {
     if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
       throw new Error(`downloadFile(${message}): download file failed`)
     }
-    if (message.thumb.endsWith('.mp4')) {
-      return FileBox.fromFile(message.thumb)
+    const filePath = message.thumb.endsWith('.mp4') ? message.thumb : message.extra
+    for (let cnt = 0; cnt < timeout; cnt++) {
+      if (existsSync(filePath)) {
+        return FileBox.fromFile(filePath)
+      }
+      await setTimeout(1000)
     }
-    return FileBox.fromFile(message.extra)
+    throw new Error(`downloadFile(${message}): download file timeout`)
   }
 
   // #endregion
