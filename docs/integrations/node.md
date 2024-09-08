@@ -1,6 +1,10 @@
 # Node.js
 
-适用于任何 Node.js 环境，内置强大且易用的Agent库，涵盖了绝大多数常用微信操作。
+适用于任何 Node.js 环境，内置强大且易用的 Agent 库，涵盖了绝大多数常用微信操作。
+
+::: tip
+始终推荐你使用 Wechaty，而不是直接使用 Agent，Wechaty 能极大的减少你的心智负担。
+:::
 
 ## 安装
 
@@ -42,7 +46,7 @@ agent.start()
 Core 内置了 Socket 连接，并通过 SDK 直接与 dll 交互，同时还支持自定义 SDK。
 
 ::: tip
-始终推荐你使用 agent，而不是 core，除非你知道你在干什么。
+如果你不用 Wechaty，我也始终推荐你使用 agent，而不是 core，除非你知道你在干什么。
 :::
 
 ### Core
