@@ -1,3 +1,4 @@
+import { setTimeout as sleep } from 'node:timers/promises'
 import type { WechatferryAgentChatRoom, WechatferryAgentChatRoomMember, WechatferryAgentContact, WechatferryAgentEventMessage } from '@wechatferry/agent'
 import { WechatferryAgent } from '@wechatferry/agent'
 import * as PUPPET from 'wechaty-puppet'
@@ -9,7 +10,7 @@ import type { PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
 import { getMentionText, isRoomId, mentionTextParser } from './utils'
 import { CacheManager } from './cache-manager'
 import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
-import { wechatferryContactToWechaty, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
+import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryDBMessageToWechaty, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
 import { EventType, parseEvent } from './events'
 
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {
@@ -68,9 +69,10 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     this.agent.removeAllListeners()
   }
 
-  override ding(data?: string): void {
+  override async ding(data?: string) {
     log.silly('WechatferryPuppet', 'ding(%s)', data || '')
-    setTimeout(() => this.emit('dong', { data: data || '' }), 1000)
+    await sleep(1000)
+    this.emit('dong', { data: data || '' })
   }
 
   async onMessage(message: WechatferryAgentEventMessage) {
@@ -120,6 +122,29 @@ export class WechatferryPuppet extends PUPPET.Puppet {
         this.updateRoomCache(roomId)
         break
       }
+    }
+  }
+
+  private lastSelfMessageId = ''
+  async onSendMessage(timeout = 5) {
+    for (let cnt = 0; cnt < timeout; cnt++) {
+      log.verbose('WechatferryPuppet', `onSendMessage(${timeout}): ${cnt}`)
+      const messagePayload = this.agent.getLastSelfMessage()
+      const messageId = `${messagePayload.MsgSvrID}`
+      log.verbose('WechatferryPuppet', 'onSendMessage() messagePayload %s', JSON.stringify(messagePayload))
+      const hasNewMessage = this.lastSelfMessageId !== messageId
+      // TODO: 立即查询出来的 id 是 0，或许有更准确的办法重试
+      if (hasNewMessage && messageId !== '0') {
+        const message = wechatferryDBMessageToEventMessage(messagePayload)
+        log.verbose('WechatferryPuppet', 'onSendMessage() message %s', JSON.stringify(message))
+        this.lastSelfMessageId = message.id
+        await this.cacheManager.setMessage(message.id, message)
+        this.emit('message', {
+          messageId: message.id,
+        })
+        return
+      }
+      await sleep(1000)
     }
   }
 
@@ -279,9 +304,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     messageId: string,
   ): Promise<boolean> {
     log.verbose('WechatferryPuppet', 'messageRecall(%s)', messageId)
-    throw new Error(
-      `messageRecall(${messageId}) called failed: Method not supported.`,
-    )
+    return this.agent.revokeMsg(messageId) === 1
   }
 
   override async messageFile(messageId: string): Promise<FileBoxInterface> {
@@ -377,6 +400,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   ): Promise<string | void> {
     const sendText = (text: string, mentions?: string[]) => {
       this.agent.sendText(conversationId, text, mentions)
+      this.onSendMessage()
     }
 
     log.verbose('messageSendText', 'preparing to send message')
@@ -387,7 +411,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       return
     }
 
-    if (mentionIdList) {
+    if (mentionIdList?.length) {
       log.verbose('messageSendText', 'mention text')
       sendText(text, mentionIdList)
       return
@@ -422,6 +446,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     else {
       await this.agent.sendFile(conversationId, file)
     }
+    this.onSendMessage()
   }
 
   override async messageSendContact(
@@ -449,6 +474,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       name: urlLinkPayload.name,
       account: urlLinkPayload.account,
     })
+    this.onSendMessage()
   }
 
   override async messageSendLocation(
@@ -479,6 +505,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   ): Promise<void | string> {
     log.verbose('WechatferryPuppet', 'messageForward(%s, %s)', conversationId, messageId)
     this.agent.forwardMsg(conversationId, messageId)
+    this.onSendMessage()
   }
 
   // #endregion

@@ -9,9 +9,10 @@ export const roomParser: MessageParser = async (message: WxMsg, ret: PuppetMessa
   if (message.is_group) {
     context.isRoomMessage = true
     try {
-      const xml = await xmlToJson<{ msgsource?: { atuserlist?: string[] } }>(message.xml)
-      if (xml?.msgsource?.atuserlist?.length) {
-        const mentionIdList = (xml.msgsource?.atuserlist?.map(v => v.trim()) || []).filter(v => v)
+      const xml = await xmlToJson<{ msgsource?: { atuserlist?: string | string[] } }>(message.xml)
+      if (xml?.msgsource?.atuserlist) {
+        const atUserList = Array.isArray(xml.msgsource.atuserlist) ? xml.msgsource.atuserlist : [xml.msgsource.atuserlist]
+        const mentionIdList = atUserList.map(v => v.trim()).filter(v => v).filter(v => v !== ',')
         if (mentionIdList.length) {
           log.verbose('roomParser', `mentionIdList: ${mentionIdList}`)
           const room = ret as PUPPET.payloads.MessageRoom
