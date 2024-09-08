@@ -10,7 +10,7 @@ import type { PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
 import { getMentionText, isRoomId, mentionTextParser } from './utils'
 import { CacheManager } from './cache-manager'
 import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
-import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryDBMessageToWechaty, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
+import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
 import { EventType, parseEvent } from './events'
 
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {

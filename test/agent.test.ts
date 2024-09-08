@@ -1,32 +1,31 @@
-import { expect, it } from 'vitest'
+import { beforeAll, expect, it } from 'vitest'
 import { FileBox } from 'file-box'
 import { WechatferryAgent } from '../packages/agent/src'
-import { Wechatferry } from '../packages/wechatferry/src'
 
-const core = new Proxy(new Wechatferry(), {
-  get(target, prop, receiver) {
-    if (typeof prop === 'string') {
-      if (prop !== 'send' && prop.startsWith('send')) {
-        return (...args: any[]) => {
-          console.error(JSON.stringify(args))
-        }
-      }
+// const core = new Proxy(new Wechatferry(), {
+//   get(target, prop, receiver) {
+//     if (typeof prop === 'string') {
+//       if (prop !== 'send' && prop.startsWith('send')) {
+//         return (...args: any[]) => {
+//           console.error(JSON.stringify(args))
+//         }
+//       }
 
-      if (prop === 'getSelfWxid') {
-        return () => 'filehelper'
-      }
-    }
-    return Reflect.get(target, prop, receiver)
-  },
-})
+//       if (prop === 'getSelfWxid') {
+//         return () => 'filehelper'
+//       }
+//     }
+//     return Reflect.get(target, prop, receiver)
+//   },
+// })
 
 const wcf = new WechatferryAgent({
-  wcf: core,
+  // wcf: core,
 })
 
-// beforeAll(() => {
-//   wcf.start()
-// })
+beforeAll(() => {
+  wcf.start()
+})
 
 it.skip('contacts', () => {
   const contactList = wcf.getContactList()
@@ -34,7 +33,7 @@ it.skip('contacts', () => {
 })
 
 it.skip('rooms', () => {
-  const rooms = wcf.getChatRoomDetailList()
+  const rooms = wcf.getChatRoomList()
   const room = rooms[0]
   expect(room).toBeTypeOf('object')
   expect(room.memberIdList?.[0]).toBeTypeOf('string')
@@ -51,14 +50,19 @@ it.skip('history', () => {
   expect(talkerWxid).toBe(id)
 })
 
-it('say', () => {
+it.skip('say', () => {
   const id = wcf.wcf.getSelfWxid()
   wcf.sendText(id, 'hello')
 })
 
-it('image', () => {
+it.skip('image', () => {
   const id = wcf.wcf.getSelfWxid()
   wcf.sendImage(id, FileBox.fromBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj2D751n8AB00DJKfruzgAAAAASUVORK5CYII=', 'test.png'))
+})
+
+it('bytesExtra', () => {
+  const msg = wcf.getLastSelfMessage()
+  console.log(msg)
 })
 
 // afterAll(() => {
