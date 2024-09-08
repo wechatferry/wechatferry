@@ -4,191 +4,11 @@
  * source: proto/bytes-extra.proto
  * git: https://github.com/thesayyn/protoc-gen-ts */
 import * as pb_1 from "google-protobuf";
-export class SubMessage1 extends pb_1.Message {
-    #one_of_decls: number[][] = [];
-    constructor(data?: any[] | {
-        field1?: number;
-        field2?: number;
-    }) {
-        super();
-        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
-        if (!Array.isArray(data) && typeof data == "object") {
-            if ("field1" in data && data.field1 != undefined) {
-                this.field1 = data.field1;
-            }
-            if ("field2" in data && data.field2 != undefined) {
-                this.field2 = data.field2;
-            }
-        }
-    }
-    get field1() {
-        return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
-    }
-    set field1(value: number) {
-        pb_1.Message.setField(this, 1, value);
-    }
-    get field2() {
-        return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
-    }
-    set field2(value: number) {
-        pb_1.Message.setField(this, 2, value);
-    }
-    static fromObject(data: {
-        field1?: number;
-        field2?: number;
-    }): SubMessage1 {
-        const message = new SubMessage1({});
-        if (data.field1 != null) {
-            message.field1 = data.field1;
-        }
-        if (data.field2 != null) {
-            message.field2 = data.field2;
-        }
-        return message;
-    }
-    toObject() {
-        const data: {
-            field1?: number;
-            field2?: number;
-        } = {};
-        if (this.field1 != null) {
-            data.field1 = this.field1;
-        }
-        if (this.field2 != null) {
-            data.field2 = this.field2;
-        }
-        return data;
-    }
-    serialize(): Uint8Array;
-    serialize(w: pb_1.BinaryWriter): void;
-    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
-        const writer = w || new pb_1.BinaryWriter();
-        if (this.field1 != 0)
-            writer.writeInt32(1, this.field1);
-        if (this.field2 != 0)
-            writer.writeInt32(2, this.field2);
-        if (!w)
-            return writer.getResultBuffer();
-    }
-    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SubMessage1 {
-        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SubMessage1();
-        while (reader.nextField()) {
-            if (reader.isEndGroup())
-                break;
-            switch (reader.getFieldNumber()) {
-                case 1:
-                    message.field1 = reader.readInt32();
-                    break;
-                case 2:
-                    message.field2 = reader.readInt32();
-                    break;
-                default: reader.skipField();
-            }
-        }
-        return message;
-    }
-    serializeBinary(): Uint8Array {
-        return this.serialize();
-    }
-    static deserializeBinary(bytes: Uint8Array): SubMessage1 {
-        return SubMessage1.deserialize(bytes);
-    }
-}
-export class SubMessage2 extends pb_1.Message {
-    #one_of_decls: number[][] = [];
-    constructor(data?: any[] | {
-        field1?: number;
-        field2?: string;
-    }) {
-        super();
-        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
-        if (!Array.isArray(data) && typeof data == "object") {
-            if ("field1" in data && data.field1 != undefined) {
-                this.field1 = data.field1;
-            }
-            if ("field2" in data && data.field2 != undefined) {
-                this.field2 = data.field2;
-            }
-        }
-    }
-    get field1() {
-        return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
-    }
-    set field1(value: number) {
-        pb_1.Message.setField(this, 1, value);
-    }
-    get field2() {
-        return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
-    }
-    set field2(value: string) {
-        pb_1.Message.setField(this, 2, value);
-    }
-    static fromObject(data: {
-        field1?: number;
-        field2?: string;
-    }): SubMessage2 {
-        const message = new SubMessage2({});
-        if (data.field1 != null) {
-            message.field1 = data.field1;
-        }
-        if (data.field2 != null) {
-            message.field2 = data.field2;
-        }
-        return message;
-    }
-    toObject() {
-        const data: {
-            field1?: number;
-            field2?: string;
-        } = {};
-        if (this.field1 != null) {
-            data.field1 = this.field1;
-        }
-        if (this.field2 != null) {
-            data.field2 = this.field2;
-        }
-        return data;
-    }
-    serialize(): Uint8Array;
-    serialize(w: pb_1.BinaryWriter): void;
-    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
-        const writer = w || new pb_1.BinaryWriter();
-        if (this.field1 != 0)
-            writer.writeInt32(1, this.field1);
-        if (this.field2.length)
-            writer.writeString(2, this.field2);
-        if (!w)
-            return writer.getResultBuffer();
-    }
-    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SubMessage2 {
-        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SubMessage2();
-        while (reader.nextField()) {
-            if (reader.isEndGroup())
-                break;
-            switch (reader.getFieldNumber()) {
-                case 1:
-                    message.field1 = reader.readInt32();
-                    break;
-                case 2:
-                    message.field2 = reader.readString();
-                    break;
-                default: reader.skipField();
-            }
-        }
-        return message;
-    }
-    serializeBinary(): Uint8Array {
-        return this.serialize();
-    }
-    static deserializeBinary(bytes: Uint8Array): SubMessage2 {
-        return SubMessage2.deserialize(bytes);
-    }
-}
 export class BytesExtra extends pb_1.Message {
     #one_of_decls: number[][] = [];
     constructor(data?: any[] | {
-        message1?: SubMessage1;
-        message2?: SubMessage2[];
+        message1?: BytesExtra.SubMessage1;
+        properties?: BytesExtra.Property[];
     }) {
         super();
         pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [3], this.#one_of_decls);
@@ -196,49 +16,49 @@ export class BytesExtra extends pb_1.Message {
             if ("message1" in data && data.message1 != undefined) {
                 this.message1 = data.message1;
             }
-            if ("message2" in data && data.message2 != undefined) {
-                this.message2 = data.message2;
+            if ("properties" in data && data.properties != undefined) {
+                this.properties = data.properties;
             }
         }
     }
     get message1() {
-        return pb_1.Message.getWrapperField(this, SubMessage1, 1) as SubMessage1;
+        return pb_1.Message.getWrapperField(this, BytesExtra.SubMessage1, 1) as BytesExtra.SubMessage1;
     }
-    set message1(value: SubMessage1) {
+    set message1(value: BytesExtra.SubMessage1) {
         pb_1.Message.setWrapperField(this, 1, value);
     }
     get has_message1() {
         return pb_1.Message.getField(this, 1) != null;
     }
-    get message2() {
-        return pb_1.Message.getRepeatedWrapperField(this, SubMessage2, 3) as SubMessage2[];
+    get properties() {
+        return pb_1.Message.getRepeatedWrapperField(this, BytesExtra.Property, 3) as BytesExtra.Property[];
     }
-    set message2(value: SubMessage2[]) {
+    set properties(value: BytesExtra.Property[]) {
         pb_1.Message.setRepeatedWrapperField(this, 3, value);
     }
     static fromObject(data: {
-        message1?: ReturnType<typeof SubMessage1.prototype.toObject>;
-        message2?: ReturnType<typeof SubMessage2.prototype.toObject>[];
+        message1?: ReturnType<typeof BytesExtra.SubMessage1.prototype.toObject>;
+        properties?: ReturnType<typeof BytesExtra.Property.prototype.toObject>[];
     }): BytesExtra {
         const message = new BytesExtra({});
         if (data.message1 != null) {
-            message.message1 = SubMessage1.fromObject(data.message1);
+            message.message1 = BytesExtra.SubMessage1.fromObject(data.message1);
         }
-        if (data.message2 != null) {
-            message.message2 = data.message2.map(item => SubMessage2.fromObject(item));
+        if (data.properties != null) {
+            message.properties = data.properties.map(item => BytesExtra.Property.fromObject(item));
         }
         return message;
     }
     toObject() {
         const data: {
-            message1?: ReturnType<typeof SubMessage1.prototype.toObject>;
-            message2?: ReturnType<typeof SubMessage2.prototype.toObject>[];
+            message1?: ReturnType<typeof BytesExtra.SubMessage1.prototype.toObject>;
+            properties?: ReturnType<typeof BytesExtra.Property.prototype.toObject>[];
         } = {};
         if (this.message1 != null) {
             data.message1 = this.message1.toObject();
         }
-        if (this.message2 != null) {
-            data.message2 = this.message2.map((item: SubMessage2) => item.toObject());
+        if (this.properties != null) {
+            data.properties = this.properties.map((item: BytesExtra.Property) => item.toObject());
         }
         return data;
     }
@@ -248,8 +68,8 @@ export class BytesExtra extends pb_1.Message {
         const writer = w || new pb_1.BinaryWriter();
         if (this.has_message1)
             writer.writeMessage(1, this.message1, () => this.message1.serialize(writer));
-        if (this.message2.length)
-            writer.writeRepeatedMessage(3, this.message2, (item: SubMessage2) => item.serialize(writer));
+        if (this.properties.length)
+            writer.writeRepeatedMessage(3, this.properties, (item: BytesExtra.Property) => item.serialize(writer));
         if (!w)
             return writer.getResultBuffer();
     }
@@ -260,10 +80,10 @@ export class BytesExtra extends pb_1.Message {
                 break;
             switch (reader.getFieldNumber()) {
                 case 1:
-                    reader.readMessage(message.message1, () => message.message1 = SubMessage1.deserialize(reader));
+                    reader.readMessage(message.message1, () => message.message1 = BytesExtra.SubMessage1.deserialize(reader));
                     break;
                 case 3:
-                    reader.readMessage(message.message2, () => pb_1.Message.addToRepeatedWrapperField(message, 3, SubMessage2.deserialize(reader), SubMessage2));
+                    reader.readMessage(message.properties, () => pb_1.Message.addToRepeatedWrapperField(message, 3, BytesExtra.Property.deserialize(reader), BytesExtra.Property));
                     break;
                 default: reader.skipField();
             }
@@ -275,5 +95,195 @@ export class BytesExtra extends pb_1.Message {
     }
     static deserializeBinary(bytes: Uint8Array): BytesExtra {
         return BytesExtra.deserialize(bytes);
+    }
+}
+export namespace BytesExtra {
+    export enum PropertyKey {
+        FIELD0 = 0,
+        WXID = 1,
+        SIGN = 2,
+        THUMB = 3,
+        EXTRA = 4,
+        XML = 7
+    }
+    export class Property extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            type?: BytesExtra.PropertyKey;
+            value?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("type" in data && data.type != undefined) {
+                    this.type = data.type;
+                }
+                if ("value" in data && data.value != undefined) {
+                    this.value = data.value;
+                }
+            }
+        }
+        get type() {
+            return pb_1.Message.getFieldWithDefault(this, 1, BytesExtra.PropertyKey.FIELD0) as BytesExtra.PropertyKey;
+        }
+        set type(value: BytesExtra.PropertyKey) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get value() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set value(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            type?: BytesExtra.PropertyKey;
+            value?: string;
+        }): Property {
+            const message = new Property({});
+            if (data.type != null) {
+                message.type = data.type;
+            }
+            if (data.value != null) {
+                message.value = data.value;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                type?: BytesExtra.PropertyKey;
+                value?: string;
+            } = {};
+            if (this.type != null) {
+                data.type = this.type;
+            }
+            if (this.value != null) {
+                data.value = this.value;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.type != BytesExtra.PropertyKey.FIELD0)
+                writer.writeEnum(1, this.type);
+            if (this.value.length)
+                writer.writeString(2, this.value);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): Property {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new Property();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.type = reader.readEnum();
+                        break;
+                    case 2:
+                        message.value = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): Property {
+            return Property.deserialize(bytes);
+        }
+    }
+    export class SubMessage1 extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            field1?: number;
+            field2?: number;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("field1" in data && data.field1 != undefined) {
+                    this.field1 = data.field1;
+                }
+                if ("field2" in data && data.field2 != undefined) {
+                    this.field2 = data.field2;
+                }
+            }
+        }
+        get field1() {
+            return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
+        }
+        set field1(value: number) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get field2() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+        set field2(value: number) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            field1?: number;
+            field2?: number;
+        }): SubMessage1 {
+            const message = new SubMessage1({});
+            if (data.field1 != null) {
+                message.field1 = data.field1;
+            }
+            if (data.field2 != null) {
+                message.field2 = data.field2;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                field1?: number;
+                field2?: number;
+            } = {};
+            if (this.field1 != null) {
+                data.field1 = this.field1;
+            }
+            if (this.field2 != null) {
+                data.field2 = this.field2;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.field1 != 0)
+                writer.writeInt32(1, this.field1);
+            if (this.field2 != 0)
+                writer.writeInt32(2, this.field2);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SubMessage1 {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SubMessage1();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.field1 = reader.readInt32();
+                        break;
+                    case 2:
+                        message.field2 = reader.readInt32();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SubMessage1 {
+            return SubMessage1.deserialize(bytes);
+        }
     }
 }

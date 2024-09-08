@@ -31,18 +31,20 @@ export function decodeBytesExtra(bytesExtra: Buffer) {
   return b.toObject()
 }
 
-/**
- * 从 bytesExtra 中获取 wxid
- *
- * @param bytesExtra 解码后的 bytesExtra
- * @returns wxid
- */
-export function getWxidFromBytesExtra(bytesExtra: ReturnType<typeof BytesExtra.prototype.toObject>): null | string {
-  const wxidMessage = bytesExtra.message2?.find(
-    (item: any) => item.field1 === 1,
-  )
-  const wxid = wxidMessage?.field2
-  if (!wxid)
-    return null
-  return wxid.split(':')[0]
+export function parseBytesExtra(bytesExtra: ReturnType<typeof BytesExtra.prototype.toObject>) {
+  const propertyMap: Partial<
+    Record<BytesExtra.PropertyKey, string>
+  > = Object.fromEntries(bytesExtra.properties?.map(p => [p.type, p.value]) ?? [])
+  const extra = propertyMap[BytesExtra.PropertyKey.EXTRA] ?? ''
+  const thumb = propertyMap[BytesExtra.PropertyKey.THUMB] ?? ''
+  const wxid = propertyMap[BytesExtra.PropertyKey.WXID] ?? ''
+  const sign = propertyMap[BytesExtra.PropertyKey.SIGN] ?? ''
+  const xml = propertyMap[BytesExtra.PropertyKey.XML] ?? ''
+  return {
+    extra,
+    thumb,
+    wxid: wxid.split(':')[0],
+    sign,
+    xml,
+  }
 }

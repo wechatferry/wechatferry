@@ -1,16 +1,28 @@
 syntax = "proto3";
 
-message SubMessage1 {
-  int32 field1 = 1;
-  int32 field2 = 2;
-}
 
-message SubMessage2 {
-  int32 field1 = 1;
-  string field2 = 2;
-}
 
 message BytesExtra {
+  enum PropertyKey {
+    FIELD0 = 0;
+    WXID = 1;
+    SIGN = 2;
+    THUMB = 3;
+    EXTRA = 4;
+    XML = 7;
+  }
+
+  message Property {
+    PropertyKey type = 1;
+    string value = 2;
+  }
+
+  message SubMessage1 {
+    int32 field1 = 1;
+    int32 field2 = 2;
+  }
+
+
   SubMessage1 message1 = 1;
-  repeated SubMessage2 message2 = 3;
+  repeated Property properties = 3;
 }
