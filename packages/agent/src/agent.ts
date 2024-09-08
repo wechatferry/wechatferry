@@ -4,7 +4,7 @@ import { setTimeout } from 'node:timers/promises'
 import os from 'node:os'
 import { existsSync } from 'node:fs'
 import type { Buffer } from 'node:buffer'
-import type { Wechatferry, wcf } from '@wechatferry/core'
+import { WechatMessageType, type Wechatferry, type wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
@@ -202,43 +202,22 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   }
 
   /**
-   * 下载图片
-   *
-   * @param message 消息
-   * @param timeout 超时
-   */
-  async downloadImage(message: WechatferryAgentEventMessage, timeout = 30) {
-    if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
-      throw new Error(`downloadImage(${message}): download image failed`)
-    }
-    for (let cnt = 0; cnt < timeout; cnt++) {
-      const path = this.wcf.decryptImage(message.extra || '', os.tmpdir())
-      if (path) {
-        return FileBox.fromFile(path)
-      }
-      await setTimeout(1000)
-    }
-    throw new Error(`downloadImage(${message}): download image timeout`)
-  }
-
-  /**
    * 下载文件
-   *
+   * @description 下载消息中的视频、文件、语音
    * @param message 消息
    * @param timeout 超时
    */
   async downloadFile(message: WechatferryAgentEventMessage, timeout = 30) {
-    if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
-      throw new Error(`downloadFile(${message}): download file failed`)
+    switch (message.type) {
+      case WechatMessageType.Image:
+        return this.downloadImage(message, timeout)
+      case WechatMessageType.Video:
+      case WechatMessageType.File:
+        return this.downloadAttach(message, timeout)
+      case WechatMessageType.Voice:
+        return this.downloadAudio(message, timeout)
     }
-    const filePath = message.thumb.endsWith('.mp4') ? message.thumb : message.extra
-    for (let cnt = 0; cnt < timeout; cnt++) {
-      if (existsSync(filePath)) {
-        return FileBox.fromFile(filePath)
-      }
-      await setTimeout(1000)
-    }
-    throw new Error(`downloadFile(${message}): download file timeout`)
+    throw new Error(`downloadFile(${message}): unsupported message type`)
   }
 
   // #endregion
@@ -581,6 +560,54 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     }
 
     return msgDbs.flatMap(db => this.dbSqlQuery<T>(db, sql)) as T
+  }
+
+  /**
+   * 下载附件
+   */
+  private async downloadAttach(message: WechatferryAgentEventMessage, timeout = 30) {
+    if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
+      throw new Error(`downloadAttach(${message}): download file failed`)
+    }
+    const filePath = message.thumb.endsWith('.mp4') ? message.thumb : message.extra
+    for (let cnt = 0; cnt < timeout; cnt++) {
+      if (existsSync(filePath)) {
+        return FileBox.fromFile(filePath)
+      }
+      await setTimeout(1000)
+    }
+    throw new Error(`downloadAttach(${message}): download file timeout`)
+  }
+
+  /**
+   * 下载图片
+   */
+  private async downloadImage(message: WechatferryAgentEventMessage, timeout = 30) {
+    if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
+      throw new Error(`downloadImage(${message}): download image failed`)
+    }
+    for (let cnt = 0; cnt < timeout; cnt++) {
+      const path = this.wcf.decryptImage(message.extra || '', os.tmpdir())
+      if (path) {
+        return FileBox.fromFile(path)
+      }
+      await setTimeout(1000)
+    }
+    throw new Error(`downloadImage(${message}): download image timeout`)
+  }
+
+  /**
+   * 下载语音
+   */
+  private async downloadAudio(message: WechatferryAgentEventMessage, timeout = 30) {
+    for (let cnt = 0; cnt < timeout; cnt++) {
+      const path = this.wcf.getAudioMsg(message.id, os.tmpdir())
+      if (path) {
+        return FileBox.fromFile(path)
+      }
+      await setTimeout(1000)
+    }
+    throw new Error(`downloadAudio(${message}): download audio timeout`)
   }
 
   // #endregion

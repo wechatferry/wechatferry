@@ -297,7 +297,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   ): Promise<FileBoxInterface> {
     log.verbose('WechatferryPuppet', 'messageImage(%s, %s[%s])', messageId, imageType, PUPPET.types.Image[imageType])
     const rawMessage = await this.messageRawPayload(messageId)
-    return this.agent.downloadImage(rawMessage)
+    return this.agent.downloadFile(rawMessage)
   }
 
   override async messageRecall(
@@ -316,6 +316,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
         return this.messageImage(messageId, PUPPET.types.Image.HD)
       case PUPPET.types.Message.Video:
       case PUPPET.types.Message.Attachment:
+      case PUPPET.types.Message.Audio:
         return this.agent.downloadFile(rawMessage)
 
       case PUPPET.types.Message.Emoticon: {

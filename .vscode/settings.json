@@ -14,11 +14,14 @@
     "Mgmt",
     "MICROVIDEO",
     "msgsource",
+    "Oneof",
     "openim",
     "POSSIBLEFRIEND",
+    "protoc",
     "qmessage",
     "removee",
     "roomid",
+    "rustup",
     "SHARECARD",
     "slik",
     "STATUSNOTIFY",
@@ -35,7 +38,8 @@
     "VOIPMSG",
     "VOIPNOTIFY",
     "wechatferry",
-    "wxids"
+    "wxids",
+    "wxmsg"
   ],
 
   // Disable the default formatter
