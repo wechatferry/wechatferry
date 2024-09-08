@@ -3,6 +3,7 @@ import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { Socket } from '@rustup/nng'
 import type { FileBox, FileBoxInterface } from 'file-box'
+import type { WechatferrySDKImpl } from './sdk'
 import { WechatferrySDK } from './sdk'
 import { wcf } from './proto/wcf'
 import type { Contact, DbTable, UserInfo, WechatferryOptions, WechatferryUserOptions, WxMsg } from './types'
@@ -21,7 +22,7 @@ export interface WechatferryEventMap {
 }
 
 export class Wechatferry extends EventEmitter<WechatferryEventMap> {
-  private sdk: WechatferrySDK
+  private sdk: WechatferrySDKImpl
   private socket: Socket
 
   constructor(options: WechatferryUserOptions = {}) {

@@ -1,6 +1,6 @@
 import type { Socket } from '@rustup/nng'
 import type { wcf } from './proto/wcf'
-import type { WechatferrySDK } from './sdk'
+import type { WechatferrySDKImpl } from './sdk'
 
 export interface WechatferrySDKUserOptions {
   /**
@@ -32,7 +32,7 @@ export interface WechatferryUserOptions {
   /**
    * sdk instance
    */
-  sdk?: WechatferrySDK
+  sdk?: WechatferrySDKImpl
   /**
    * socket instance
    */

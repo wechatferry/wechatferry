@@ -25,7 +25,17 @@ export interface WechatferrySDKEventMap {
   message: [wcf.WxMsg]
 }
 
-export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> {
+export interface WechatferrySDKImpl extends EventEmitter<WechatferrySDKEventMap> {
+  init: (debug?: boolean, port?: number) => boolean
+  destroy: () => void
+  startRecvMessage: () => void
+  stopRecvMessage: () => void
+  get isReceiving(): boolean
+  get cmdUrl(): string
+  get msgUrl(): string
+}
+
+export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> implements WechatferrySDKImpl {
   private lib: koffi.IKoffiLib
   private options: WechatferrySDKOptions
   private messageRecvDisposable?: MessageRecvDisposable
