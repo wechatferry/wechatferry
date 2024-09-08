@@ -3,11 +3,12 @@ import process from 'node:process'
 import { setTimeout } from 'node:timers/promises'
 import os from 'node:os'
 import { existsSync } from 'node:fs'
+import type { Buffer } from 'node:buffer'
 import type { Wechatferry, wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
-import { decodeBytesExtra, getWxidFromBytesExtra, resolvedWechatferryAgentOptions } from './utils'
+import { decodeBytesExtra, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
 import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 
@@ -105,6 +106,10 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     return this.wcf.execDbQuery(db, typeof sql === 'string' ? sql : sql.toQuery()) as T
   }
 
+  getDbList() {
+    return this.wcf.getDbNames()
+  }
+
   /**
    * 邀请联系人加群
    *
@@ -186,6 +191,22 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     return this.wcf.forwardMsg(conversationId, messageId)
   }
 
+  /**
+   * 撤回消息
+   *
+   * @description 你只能撤回自己的消息
+   * @param messageId 消息 ID
+   */
+  revokeMsg(messageId: string) {
+    return this.wcf.revokeMsg(messageId)
+  }
+
+  /**
+   * 下载图片
+   *
+   * @param message 消息
+   * @param timeout 超时
+   */
   async downloadImage(message: WechatferryAgentEventMessage, timeout = 30) {
     if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
       throw new Error(`downloadImage(${message}): download image failed`)
@@ -200,6 +221,12 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     throw new Error(`downloadImage(${message}): download image timeout`)
   }
 
+  /**
+   * 下载文件
+   *
+   * @param message 消息
+   * @param timeout 超时
+   */
   async downloadFile(message: WechatferryAgentEventMessage, timeout = 30) {
     if (this.wcf.downloadAttach(message.id, message.thumb, message.extra) !== 0) {
       throw new Error(`downloadFile(${message}): download file failed`)
@@ -444,13 +471,15 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @description 建议注入查询条件，不然非常的卡
    * @param userName wxid wxid 或 roomId
    * @param filter 注入查询条件
+   * @param dbNumber 手动指定要查询 MSG 分表，默认为遍历查询所有的 MSG{x}.db，如果指定，但该分表不存在，则查询最后一个分表
    */
   getHistoryMessageList(
     userName: string,
     filter?: (sql: Knex.QueryBuilder<MSG>) => void,
+    dbNumber?: number,
   ) {
     const talkerId = this.getTalkerId(userName)
-    const { db, knex } = useMSG0DbQueryBuilder()
+    const { knex } = useMSG0DbQueryBuilder()
     const sql = knex
       .from('MSG')
       .select(
@@ -476,16 +505,37 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
     filter?.(sql)
 
-    const data = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
-    return data.map((msg) => {
-      const BytesExtra = decodeBytesExtra(msg.BytesExtra)
-      // fallback to self wxid
-      const wxid = getWxidFromBytesExtra(BytesExtra) || this.wcf.getSelfWxid()
-      return {
-        ...msg,
-        talkerWxid: wxid,
-      }
-    })
+    const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, dbNumber)
+    return data.map(this.formatHistoryMessage)
+  }
+
+  /**
+   * 获取自己发送的最后一条消息
+   */
+  getLastSelfMessage() {
+    const { knex } = useMSG0DbQueryBuilder()
+    const sql = knex
+      .from('MSG')
+      .select(
+        'localId',
+        'TalkerId',
+        'MsgSvrID',
+        'Type',
+        'SubType',
+        'IsSender',
+        'CreateTime',
+        'Sequence',
+        'StatusEx',
+        'FlagEx',
+        'Status',
+        'MsgServerSeq',
+        'MsgSequence',
+        'StrTalker',
+        'StrContent',
+        'BytesExtra',
+      ).where('IsSender', 1).orderBy('CreateTime', 'desc').limit(1)
+    const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, -1)[0]
+    return this.formatHistoryMessage(data)
   }
 
   // #region Utils
@@ -508,6 +558,29 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       /** 群成员{wxid:昵称}对照表 */
       displayNameMap,
     }
+  }
+
+  private formatHistoryMessage<T extends { BytesExtra: Buffer }>(msg: T) {
+    const { BytesExtra, ...message } = msg
+    const BytesExtraObj = decodeBytesExtra(msg.BytesExtra)
+    const extra = parseBytesExtra(BytesExtraObj)
+    return {
+      ...message,
+      talkerWxid: extra.wxid || this.wcf.getSelfWxid(),
+      Extra: extra,
+    }
+  }
+
+  private dbSqlQueryMSG<T>(sql: string | Knex.QueryBuilder, dbNumber?: number): T {
+    const dbs = this.getDbList()
+    // MSG0.db, MSG1.db...
+    const msgDbs = dbs.filter(db => db.startsWith('MSG'))
+    if (dbNumber) {
+      const db = msgDbs.find(db => db === `MSG${dbNumber}.db`)
+      return this.dbSqlQuery<T>(db || msgDbs.at(-1)!, sql)
+    }
+
+    return msgDbs.flatMap(db => this.dbSqlQuery<T>(db, sql)) as T
   }
 
   // #endregion

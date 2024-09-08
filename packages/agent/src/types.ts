@@ -25,3 +25,4 @@ export type WechatferryAgentChatRoomMember = Exclude<ReturnType<WechatferryAgent
 export type WechatferryAgentContact = Exclude<ReturnType<WechatferryAgent['getContactInfo']>, undefined>
 export type WechatferryAgentChatRoom = Exclude<ReturnType<WechatferryAgent['getChatRoomInfo']>, undefined>
 export type WechatferryAgentEventMessage = WxMsg
+export type WechatferryAgentDBMessage = Exclude<ReturnType<WechatferryAgent['getLastSelfMessage']>, undefined>
