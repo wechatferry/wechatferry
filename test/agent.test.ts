@@ -62,7 +62,7 @@ it.skip('image', () => {
 
 it('bytesExtra', () => {
   const msg = wcf.getLastSelfMessage()
-  console.log(msg)
+  console.error(msg)
 })
 
 // afterAll(() => {
