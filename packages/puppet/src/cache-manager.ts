@@ -146,6 +146,11 @@ export class CacheManager {
     return cache.setItem(contactId, payload)
   }
 
+  deleteRoomMember(roomId: string, contactId: string) {
+    const cache = this.getRoomMemberCache(roomId)
+    return cache.removeItem(contactId)
+  }
+
   setRoomMemberList(roomId: string, payload: WechatferryAgentChatRoomMember[]) {
     const cache = this.getRoomMemberCache(roomId)
     return Promise.all(payload.map(member => cache.setItem(member.UserName, member)))

@@ -113,8 +113,11 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       }
 
       case EventType.RoomLeave: {
-        this.emit('room-leave', event.payload)
-        this.updateRoomMemberListCache(roomId)
+        const payload = event.payload as PUPPET.payloads.EventRoomLeave
+        this.emit('room-leave', payload)
+        for (const memberId of payload.removeeIdList) {
+          await this.cacheManager.deleteRoomMember(roomId, memberId)
+        }
         break
       }
       case EventType.RoomTopic: {
@@ -908,6 +911,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   /**
    * 更新群聊成员列表缓存
    *
+   * @description 主要用于 room-join 事件前获取新加群的成员
+   * @deprecated 尽可能避免使用，优先使用 updateRoomMemberCache
    * @param roomId 群聊 id
    */
   public async updateRoomMemberListCache(roomId: string) {
@@ -917,23 +922,27 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       return null
     }
     await this.cacheManager.setRoomMemberList(roomId, members)
-    this.dirtyPayload(PUPPET.types.Payload.RoomMember, roomId)
     return members
   }
 
   private async updateRoomMemberCache(roomId: string, contactId: string) {
     log.verbose('WechatferryPuppet', `updateRoomMemberCache(${roomId}, ${contactId})`)
-    const members = await this.updateRoomMemberListCache(roomId)
-    if (!members) {
+    const { displayNameMap = {} } = await this.roomRawPayload(roomId) ?? {}
+    const [member] = this.agent.getChatRoomMembersByMemberIdList([contactId], displayNameMap)
+    if (!member) {
+      await this.cacheManager.deleteRoomMember(roomId, contactId)
       return null
     }
-    return members.find(member => member.UserName === contactId) ?? null
+    this.dirtyPayload(PUPPET.types.Payload.RoomMember, member.UserName)
+    await this.cacheManager.setRoomMember(roomId, contactId, member)
+    return member
   }
 
   private async loadContactList() {
     log.verbose('WechatferryPuppet', 'loadContactList()')
 
     const contacts = this.agent.getContactList()
+    log.verbose('WechatferryPuppet', `loadContactList: contacts ${contacts.length}`)
     return this.cacheManager.setContactList(contacts)
   }
 
@@ -941,6 +950,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     log.verbose('WechatferryPuppet', 'loadRoomList()')
 
     const rooms = this.agent.getChatRoomList()
+    log.verbose('WechatferryPuppet', `loadRoomList: rooms ${rooms.length}`)
     return this.cacheManager.setRoomList(rooms)
   }
 
