@@ -15,16 +15,16 @@ export class CacheManager {
 
   constructor(storage: Storage<StorageValue>) {
     this.storage = storage
-    this.messageCache = createPrefixStorage<WechatferryAgentEventMessage>(storage, 'message')
-    this.contactCache = createPrefixStorage<WechatferryAgentContact>(storage, 'contact')
-    this.roomCache = createPrefixStorage<WechatferryAgentChatRoom>(storage, 'room')
-    this.roomInvitationCache = createPrefixStorage<PUPPET.payloads.RoomInvitation>(storage, 'room-invitation')
-    this.friendshipCache = createPrefixStorage<PUPPET.payloads.Friendship>(storage, 'friendship')
+    this.messageCache = createPrefixStorage<WechatferryAgentEventMessage>(storage, 'wcf:message')
+    this.contactCache = createPrefixStorage<WechatferryAgentContact>(storage, 'wcf:contact')
+    this.roomCache = createPrefixStorage<WechatferryAgentChatRoom>(storage, 'wcf:room')
+    this.roomInvitationCache = createPrefixStorage<PUPPET.payloads.RoomInvitation>(storage, 'wcf:room-invitation')
+    this.friendshipCache = createPrefixStorage<PUPPET.payloads.Friendship>(storage, 'wcf:friendship')
   }
 
   private getRoomMemberCache(roomId: string) {
     if (!this.roomMemberCacheList.has(roomId)) {
-      this.roomMemberCacheList.set(roomId, createPrefixStorage<WechatferryAgentChatRoomMember>(this.storage, `room-member:${roomId}`))
+      this.roomMemberCacheList.set(roomId, createPrefixStorage<WechatferryAgentChatRoomMember>(this.storage, `wcf:room-member:${roomId}`))
     }
     return this.roomMemberCacheList.get(roomId)!
   }
