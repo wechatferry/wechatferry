@@ -324,7 +324,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param memberIdList 群成员 wxid 列表
    * @param displayNameMap 群成员 wxid 与昵称对照表
    */
-  getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string>) {
+  getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string> = {}) {
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
@@ -485,7 +485,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     filter?.(sql)
 
     const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, dbNumber)
-    return data.map(this.formatHistoryMessage)
+    return data.map(this.formatHistoryMessage.bind(this))
   }
 
   /**
