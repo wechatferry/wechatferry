@@ -646,7 +646,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   override async roomMemberRawPayload(roomId: string, contactId: string): Promise<WechatferryAgentChatRoomMember | null> {
     log.verbose('WechatferryPuppet', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
-    const member = this.cacheManager.getRoomMember(roomId, contactId)
+    const member = await this.cacheManager.getRoomMember(roomId, contactId)
 
     if (!member) {
       return await this.updateRoomMemberCache(roomId, contactId)
@@ -848,6 +848,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   // #region Private Methods
 
   private async getRoomPayload(roomId: string) {
+    log.verbose('WechatferryPuppet', `getRoomPayload(${roomId})`)
     const room = await this.roomRawPayload(roomId)
     if (!room) {
       throw new Error(
@@ -859,6 +860,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private async getMessagePayload(messageId: string) {
+    log.verbose('WechatferryPuppet', `getMessagePayload(${messageId})`)
     const message = await this.messageRawPayload(messageId)
     if (!message) {
       throw new Error(
@@ -870,6 +872,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private async getContactPayload(contactId: string) {
+    log.verbose('WechatferryPuppet', `getContactPayload(${contactId})`)
     const contact = await this.contactRawPayload(contactId)
 
     if (!contact) {
@@ -881,6 +884,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   async updateContactCache(contactId: string) {
+    log.verbose('WechatferryPuppet', `updateContactCache(${contactId})`)
     const contact = this.agent.getContactInfo(contactId)
     if (!contact) {
       return null
@@ -891,6 +895,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private async updateRoomCache(roomId: string) {
+    log.verbose('WechatferryPuppet', `updateRoomCache(${roomId})`)
     const room = this.agent.getChatRoomInfo(roomId)
     if (!room) {
       return null
@@ -906,6 +911,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
    * @param roomId 群聊 id
    */
   public async updateRoomMemberListCache(roomId: string) {
+    log.verbose('WechatferryPuppet', `updateRoomMemberListCache(${roomId})`)
     const members = this.agent.getChatRoomMembers(roomId)
     if (!members) {
       return null
@@ -916,6 +922,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private async updateRoomMemberCache(roomId: string, contactId: string) {
+    log.verbose('WechatferryPuppet', `updateRoomMemberCache(${roomId}, ${contactId})`)
     const members = await this.updateRoomMemberListCache(roomId)
     if (!members) {
       return null
@@ -931,7 +938,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private async loadRoomList() {
-    log.verbose('WechatferryPuppet', 'loadContactList()')
+    log.verbose('WechatferryPuppet', 'loadRoomList()')
 
     const rooms = this.agent.getChatRoomList()
     return this.cacheManager.setRoomList(rooms)
