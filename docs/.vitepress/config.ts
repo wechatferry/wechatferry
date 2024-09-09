@@ -35,6 +35,7 @@ export default defineConfig({
         items: [
           { text: '安全模式', link: '/plugins/safe-mode' },
           { text: '群聊禁言', link: '/plugins/room-mute' },
+          { text: '群聊踢人', link: '/plugins/room-kick' },
         ],
       },
       {

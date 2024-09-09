@@ -15,5 +15,6 @@ export const integrations: Integration[] = [
 
 export const plugins: Integration[] = [
   { name: '安全模式', link: '/plugins/safe-mode', icon: 'i-carbon:ai-governance-lifecycle' },
-  { name: '群聊禁言', link: '/plugins/room-mute', icon: 'i-carbon:misuse-outline' },
+  { name: '群聊禁言', link: '/plugins/room-mute', icon: 'i-carbon:error' },
+  { name: '群聊踢人', link: '/plugins/room-kick', icon: 'i-carbon:misuse-outline' },
 ]
