@@ -1,13 +1,13 @@
 ---
 title: 指南
-description: 快速上手 WechatFerry
+description: 快速上手 wechatferry
 ---
 
 # 什么是 WechatFerry
 
 WechatFerry 是由 @lich0821 开发的 Windows 下的微信机器人底层框架。
 
-wcf 官方提供了包含 Python、Java、Rust、Go 客户端的第一方实现，本项目是 Node 生态下的第三方客户端实现，皆在使每个人都能轻松接入并快速开发微信机器人。
+wcf 官方提供了包含 Python、Java、Rust、Go 客户端的第一方实现，本项目 [wechatferry](https://wcferry.netlify.app/) 是 Node 生态下的第三方客户端实现，并提供了心智友好的接入方式，皆在使每个人都能轻松接入并快速开发微信机器人，更多功能请查看[特性](/features.html)。
 
 ::: danger
 如果你没有 64 位的 Windows 系统，那么本项目不适合你。
@@ -25,9 +25,9 @@ wcf 官方提供了包含 Python、Java、Rust、Go 客户端的第一方实现�
 
 ## 集成
 
-WechatFerry 提供了多种集成方式，如果你在用 Nuxt 的话，我推荐直接使用下方的 Nuxt 模块，不仅可以享受完整的 Nuxt 生态和开发体验，还能拥有自动注册、微信数据库开发者工具等集成。
+wechatferry 提供了多种集成方式，如果你在用 [Nuxt](https://nuxt.com/) 的话，我推荐直接使用下方的 [Nuxt 模块](/integrations/nuxt.html)，不仅可以享受完整的 Nuxt 生态和开发体验，还能拥有自动注册、微信数据库开发者工具等集成。
 
-如果你对 [Wechaty](https://wechaty.js.org/) 更熟悉，请使用下方的 Wechaty Puppet 集成。
+如果你对 [Wechaty](https://wechaty.js.org/) 更熟悉，请使用下方的 [Wechaty Puppet](/integrations/wechaty.html) 集成。
 
 若你想完全控制并自主实现，请使用 Node 集成。
 
@@ -35,6 +35,6 @@ WechatFerry 提供了多种集成方式，如果你在用 Nuxt 的话，我推�
 
 ## 插件
 
-WechatFerry 从 v0.0.9 之后将逐步实现有趣、常用、有用的基于 Wechaty Plugins 或 Proxy 的插件，这些插件只适用于 Wechaty 或是对 @wechatferry/puppet 的扩展
+wechatferry 从 v0.0.9 之后将逐步实现有趣、常用、有用的基于 [Wechaty Plugins](https://wechaty.js.org/docs/using-plugin-with-wechaty/overview) 或 Proxy 的插件，这些插件会用于 [Wechaty](https://wechaty.js.org/) 或是对 [@wechatferry/puppet](https://www.jsdocs.io/package/@wechatferry/puppet) 的扩展
 
 <ContentPlugins />

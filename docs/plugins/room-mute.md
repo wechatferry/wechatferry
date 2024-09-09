@@ -6,8 +6,8 @@
 
 ::: code-group
 ```ts twoslash [bot.ts]
-import { WechatferryPuppet } from '@wechatferry/puppet'
-import { WechatferryPuppet } from '@wechatferry/plugins'
+import { WechatyBuilder } from 'wechaty'
+import { wechatyPluginRoomMute } from '@wechatferry/plugins'
 
 const bot = WechatyBuilder.build()
 bot
@@ -15,7 +15,7 @@ bot
     admin: [],
     room: [],
   }))
-  .start()
+bot.start()
 ```
 :::
 

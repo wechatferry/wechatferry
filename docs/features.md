@@ -1,6 +1,6 @@
 # 特性
 
-本客户端 core 完整实现了 WechatFerry 支持的[所有功能](https://github.com/lich0821/WeChatFerry)，在其基础上 puppet 对如下功能进行了封装：
+本客户端 core 完整实现了 [WechatFerry](https://github.com/lich0821/WeChatFerry) 支持的所有功能，在其基础上 puppet 对如下功能进行了封装：
 
 - 事件
   - 消息事件

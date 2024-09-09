@@ -3,7 +3,7 @@ import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { groupIconMdPlugin } from 'vitepress-plugin-group-icons'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: 'WechatFerry',
+  title: 'wechatferry',
   description: '基于 WechatFerry 的微信机器人底层框架',
 
   themeConfig: {
@@ -34,6 +34,7 @@ export default defineConfig({
         link: '/plugins',
         items: [
           { text: '安全模式', link: '/plugins/safe-mode' },
+          { text: '群聊禁言', link: '/plugins/room-mute' },
         ],
       },
       {
