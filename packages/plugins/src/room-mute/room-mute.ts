@@ -11,8 +11,11 @@ import { defineWechatyPlugin } from '../utils'
 
 const BLOCK_COMMAND_REGEX = /(MUTE|UNMUTE)\s?(\d+)?/g
 export interface RoomMuteOptions {
+  /** 启用的群聊 */
   room: matchers.RoomMatcherOptions
+  /** 管理员，管理员不能互相禁言 */
   admin: matchers.ContactMatcherOptions
+  /** 可选，你可以传递一个 redis/fs 进来，这样机器人重启后也能保持封禁 */
   driver?: Driver
 }
 
