@@ -1,6 +1,6 @@
 {
   "name": "my-module-client",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
