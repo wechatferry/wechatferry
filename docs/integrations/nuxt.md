@@ -7,6 +7,17 @@
 ```bash
 pnpx nuxi module add @wechatferry/nuxt
 ```
+::: code-group
+  ```bash [pnpm]
+  pnpm add @wechatferry/nuxt
+  ```
+  ```bash [yarn]
+  yarn add @wechatferry/nuxt
+  ```
+  ```bash [npm]
+  npm install @wechatferry/nuxt
+  ```
+:::
 
 ## 使用
 
