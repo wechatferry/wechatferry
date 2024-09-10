@@ -38,3 +38,5 @@ bot.on('message', (msg) => {
 :::
 
 ## 例子
+
+去 wechaty 上看去吧
