@@ -9,7 +9,7 @@
 [![WebSite][website-src]][website-href]
 
 >[!TIP]
-> 再一次让 Wechaty 免费协议重放荣光 - [@wechatferry/puppet](https://wcferry.netlify.app/integrations/wechaty.html)
+> 再一次让 Wechaty 免费协议(PC Hook)重放荣光 - [@wechatferry/puppet](https://wcferry.netlify.app/integrations/wechaty.html)
 
 ## 安装
 
@@ -21,11 +21,11 @@ pnpm add wechatferry
 
 |名称|描述|
 |---|---|
-|[@wechatferry/core](https://github.com/uni-helper/wechatferry/tree/main/packages/core)| 调用 sdk.dll 封装 tcp 连接 |
-|[@wechatferry/agent](https://github.com/uni-helper/wechatferry/tree/main/packages/agent)| 封装核心 更易于使用 |
-|[@wechatferry/puppet](https://github.com/uni-helper/wechatferry/tree/main/packages/puppet)| 让 Wechaty 免费协议重放荣光 |
-|[@wechatferry/nuxt](https://github.com/uni-helper/wechatferry/tree/main/packages/nuxt)| 使 Nuxt 轻松接入微信机器人 |
-|[@wechatferry/plugins](https://github.com/uni-helper/wechatferry/tree/main/packages/plugins)| 随便实现的几个插件 |
+|[@wechatferry/core](https://github.com/wechatferry/wechatferry/tree/main/packages/core)| 调用 sdk.dll 封装 tcp 连接 |
+|[@wechatferry/agent](https://github.com/wechatferry/wechatferry/tree/main/packages/agent)| 封装核心 更易于使用 |
+|[@wechatferry/puppet](https://github.com/wechatferry/wechatferry/tree/main/packages/puppet)| 让 Wechaty 免费协议重放荣光 |
+|[@wechatferry/nuxt](https://github.com/wechatferry/wechatferry/tree/main/packages/nuxt)| 使 Nuxt 轻松接入微信机器人 |
+|[@wechatferry/plugins](https://github.com/wechatferry/wechatferry/tree/main/packages/plugins)| 随便实现的几个插件 |
 
 ## 免责声明
 

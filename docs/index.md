@@ -27,7 +27,7 @@ features:
     icon: <span class="i-carbon:ibm-toolchain"></span>
     linkText: '@wechatferry/agent'
   - title: Wechaty 免费协议
-    details: 又一个 Wechaty 的免费协议，让你享受 Wechaty 强大生态系统带来的便利，快速扩展你的微信机器人的功能。
+    details: 又一个 Wechaty 的免费 PC Hook 协议，让你享受 Wechaty 强大生态系统带来的便利，快速扩展你的微信机器人的功能。
     link: https://wcferry.netlify.app/integrations/wechaty.html
     icon: <span class="i-carbon:load-balancer-pool"></span>
     linkText: '@wechatferry/puppet'
