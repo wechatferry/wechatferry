@@ -3,6 +3,7 @@ import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { Socket } from '@rustup/nng'
 import type { FileBox, FileBoxInterface } from 'file-box'
+import { useLogger } from '@wechatferry/logger'
 import type { WechatferrySDKImpl } from './sdk'
 import { WechatferrySDK } from './sdk'
 import { wcf } from './proto/wcf'
@@ -12,7 +13,7 @@ import { parseDbField, saveFileBox } from './utils'
 export function resolvedWechatferryOptions(options: WechatferryUserOptions): WechatferryOptions {
   return {
     ...options,
-    socket: new Socket(),
+    socket: new Socket({}),
     sdk: new WechatferrySDK(),
   }
 }
@@ -20,6 +21,8 @@ export function resolvedWechatferryOptions(options: WechatferryUserOptions): Wec
 export interface WechatferryEventMap {
   message: [WxMsg]
 }
+
+const logger = useLogger('core')
 
 export class Wechatferry extends EventEmitter<WechatferryEventMap> {
   private sdk: WechatferrySDKImpl
@@ -38,26 +41,48 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
    * 启动 wcf
    */
   start() {
+    logger.debug('start')
+    logger.start('Starting Wechatferry...')
     this.catchErrors()
     this.sdk.init()
     this.socket.connect(this.sdk.cmdUrl)
     this.sdk.on('message', msg => this.emit('message', msg.toObject() as WxMsg))
     this.startRecvMessage()
+    logger.success('Wechatferry started!')
   }
 
   /**
    * 停止 wcf
    */
   stop() {
+    logger.debug('stop')
+    logger.start('Stopping Wechatferry...')
     this.stopRecvMessage()
     this.socket.close()
     this.sdk.destroy()
+    logger.success('Wechatferry stopped!')
+  }
+
+  /**
+   * 重置 SDK
+   *
+   * @description 退出登录后 sdk 的 rpc 就挂了，需要重新来
+   */
+  resetSdk() {
+    logger.debug('resetSdk')
+    logger.start('Resetting SDK...')
+    this.stopRecvMessage()
+    this.sdk.destroy()
+    this.sdk.init()
+    this.startRecvMessage()
+    logger.success('SDK reset!')
   }
 
   /**
    * 开始接收消息
    */
   startRecvMessage() {
+    logger.debug('startRecvMessage')
     if (this.sdk.isReceiving)
       return
     const { status } = this.send(new wcf.Request({
@@ -75,17 +100,22 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
    * 停止接收消息
    */
   stopRecvMessage() {
+    logger.debug('stopRecvMessage')
     if (!this.sdk.isReceiving)
       return
-    const { status } = this.send(new wcf.Request({
-      func: wcf.Functions.FUNC_DISABLE_RECV_TXT,
-    }))
-    this.sdk.stopRecvMessage()
-    return status
+    this.sdk.stopRecvMessage();
+    (async () => {
+      if (this.socket.connected()) {
+        this.send(new wcf.Request({
+          func: wcf.Functions.FUNC_DISABLE_RECV_TXT,
+        }))
+      }
+    })()
   }
 
   /** 发送 WCF Function Request */
   send(req: wcf.Request): wcf.Response {
+    logger.debug('send', wcf.Functions[req.func])
     const buf = this.socket.send(Buffer.from(req.serialize()))
     return wcf.Response.deserialize(buf)
   }

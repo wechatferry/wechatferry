@@ -1,16 +1,9 @@
 import { tmpdir } from 'node:os'
 import { Buffer } from 'node:buffer'
 import { existsSync } from 'node:fs'
-import { createConsola } from 'consola'
 import type { FileBoxInterface } from 'file-box'
 import { join } from 'pathe'
 import { ensureDir } from 'fs-extra'
-
-export const logger = createConsola({
-  defaults: {
-    tag: 'wechatferry',
-  },
-})
 
 export async function saveFileBox(file: FileBoxInterface, dir = tmpdir()) {
   const dirPath = join(dir, 'wechatferry')

@@ -5,8 +5,8 @@ import koffi from 'koffi'
 import { dirname, join, resolve } from 'pathe'
 import type { MessageRecvDisposable } from '@rustup/nng'
 import { Socket } from '@rustup/nng'
+import { useLogger } from '@wechatferry/logger'
 import type { WechatferrySDKOptions, WechatferrySDKUserOptions } from './types'
-import { logger } from './utils'
 import { wcf } from './proto/wcf'
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url))
@@ -35,21 +35,26 @@ export interface WechatferrySDKImpl extends EventEmitter<WechatferrySDKEventMap>
   get msgUrl(): string
 }
 
+const logger = useLogger('core:sdk')
+
 export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> implements WechatferrySDKImpl {
   private lib: koffi.IKoffiLib
   private options: WechatferrySDKOptions
   private messageRecvDisposable?: MessageRecvDisposable
   constructor(options: WechatferrySDKUserOptions = {}) {
     super()
+    logger.debug(`constructor options: ${JSON.stringify(options)}`)
     this.options = resolvedWechatferrySDKOptions(options)
     this.lib = koffi.load(join(this.options.sdkRoot, 'sdk.dll'))
   }
 
   private get WxInitSDK(): (debug: boolean, port: number) => number {
+    logger.debug('WxInitSDK')
     return this.lib.func('WxInitSDK', 'int', ['bool', 'int'])
   }
 
   private get WxDestroySDK(): () => void {
+    logger.debug('WxDestroySDK')
     return this.lib.func('WxDestroySDK', 'void', [])
   }
 
@@ -73,6 +78,7 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> impleme
    * @param port 启动的端口
    */
   init(debug = this.options.debug, port = this.options.port): boolean {
+    logger.debug(`init debug: ${debug}, port: ${port}`)
     return this.WxInitSDK(debug, port) === 0
   }
 
@@ -80,6 +86,7 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> impleme
    * 销毁 sdk
    */
   destroy(): void {
+    logger.debug('destroy')
     this.stopRecvMessage()
     return this.WxDestroySDK()
   }
@@ -92,6 +99,7 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> impleme
    * 启用消息接收
    */
   startRecvMessage() {
+    logger.debug('startRecvMessage')
     this.messageRecvDisposable = Socket.recvMessage(this.msgUrl, undefined, (err: unknown | undefined, buf: Buffer) => {
       if (err) {
         return logger.error(err)
@@ -105,6 +113,7 @@ export class WechatferrySDK extends EventEmitter<WechatferrySDKEventMap> impleme
    * 停止接收消息
    */
   stopRecvMessage() {
+    logger.debug('stopRecvMessage')
     this.messageRecvDisposable?.dispose()
     this.messageRecvDisposable = undefined
   }
