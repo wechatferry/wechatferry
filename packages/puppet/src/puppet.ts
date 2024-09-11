@@ -77,17 +77,16 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   async onMessage(message: WechatferryAgentEventMessage) {
     const messageId = message.id
+    await this.cacheManager.setMessage(messageId, message)
     const event = await parseEvent(this, message)
     const roomId = message.roomid
     log.verbose('WechatferryPuppet', 'onMessage() event %s', JSON.stringify(event))
     switch (event.type) {
       case EventType.Message: {
-        await this.cacheManager.setMessage(messageId, message)
         this.emit('message', { messageId })
         break
       }
       case EventType.Post: {
-        await this.cacheManager.setMessage(messageId, message)
         this.emit('post', event.payload)
         break
       }
