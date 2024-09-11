@@ -46,7 +46,6 @@
     "@wechatferry/core": "workspace:*",
     "@wechatferry/logger": "workspace:*",
     "file-box": "^1.4.15",
-    "knex": "^3.1.0",
-    "perfect-debounce": "^1.0.0"
+    "knex": "^3.1.0"
   }
 }

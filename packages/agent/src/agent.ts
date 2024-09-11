@@ -8,7 +8,6 @@ import { WechatMessageType, type Wechatferry, type wcf } from '@wechatferry/core
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
 import { useLogger } from '@wechatferry/logger'
-import { debounce } from 'perfect-debounce'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
 import { decodeBytesExtra, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
