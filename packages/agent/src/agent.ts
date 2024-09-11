@@ -24,12 +24,14 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   private aliveCounter = 0
 
   wcf: Wechatferry
+  private keepalive: boolean | number
 
   constructor(options: WechatferryAgentUserOptions = {}) {
     super()
-    const { wcf }
+    const { wcf, keepalive }
       = resolvedWechatferryAgentOptions(options)
     this.wcf = wcf
+    this.keepalive = keepalive
   }
 
   // #region Core
@@ -69,24 +71,16 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
   private onMessage(msg: WechatferryAgentEventMessage) {
     this.emit('message', msg)
-    // 每条消息保活 10s
-    this.setAliveCounter(10)
+    if (!this.keepalive)
+      return
+    this.aliveCounter = 0
   }
 
-  private onSended(func: string) {
-    if (func === 'FUNC_IS_LOGIN') {
-      this.setAliveCounter(this.aliveCounter <= 0 ? 10 : 1)
-    }
-    else {
-      this.setAliveCounter(15)
-    }
+  private onSended() {
+    if (!this.keepalive)
+      return
+    this.aliveCounter = 0
   }
-
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  private setAliveCounter = debounce((counter: number) => {
-    // 最多保活 100s
-    this.aliveCounter = Math.min(this.aliveCounter + counter, 100)
-  }, 100, { leading: true })
 
   private catchErrors() {
     process.on('uncaughtException', this.stop.bind(this))
@@ -105,6 +99,9 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       this.isLoggedIn = isLoggedIn
       if (isLoggedIn) {
         this.emit('login', this.wcf.getUserInfo())
+        if (!this.keepalive) {
+          this.stopLoginCheck()
+        }
       }
       else {
         this.emit('logout')
@@ -120,9 +117,9 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     this.stopLoginCheck()
     this.checkLoginStatus()
     this.intervalId = setInterval(() => {
-      this.aliveCounter--
+      this.aliveCounter++
       if (this.isLoggedIn) {
-        if (this.aliveCounter <= 0) {
+        if (this.aliveCounter >= (typeof this.keepalive === 'number' ? this.keepalive : 30)) {
           logger.debug('WechatferryAgent may not be alive, checking...')
           this.checkLoginStatus()
         }

@@ -6,8 +6,22 @@ import { setupDevToolsUI } from './devtools'
 import { setupRPC } from './server-rpc'
 
 export interface ModuleOptions {
+  /**
+   * Enable debug mode
+   * @default false
+   */
   debug: boolean
+  /**
+   * 为 puppet 启用安全模式
+   * @default false
+   * @link https://wcferry.netlify.app/plugins/safe-mode.html
+   */
   safeMode: boolean
+  /**
+   * 为 agent 启用 keepalive
+   * @default false
+   */
+  keepalive: boolean | number
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -17,6 +31,8 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: {
     debug: false,
+    safeMode: false,
+    keepalive: false,
   },
   async setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
@@ -41,10 +57,7 @@ export default defineNuxtModule<ModuleOptions>({
 
 declare module 'nuxt/schema' {
   interface RuntimeConfig {
-    wcferry: {
-      safeMode: boolean
-      debug: boolean
-    }
+    wcferry: ModuleOptions
   }
 }
 
