@@ -7,13 +7,22 @@ import type { Buffer } from 'node:buffer'
 import { WechatMessageType, type Wechatferry, type wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
+import { useLogger } from '@wechatferry/logger'
+import { debounce } from 'perfect-debounce'
 import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
 import { decodeBytesExtra, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
 import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 
+const logger = useLogger('agent')
+
 export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
-  private timer: number | null = null
+  private intervalId: NodeJS.Timeout | null = null
+  /** 是否登录 */
+  private isLoggedIn = false
+  private isChecking = false
+  private aliveCounter = 0
+
   wcf: Wechatferry
 
   constructor(options: WechatferryAgentUserOptions = {}) {
@@ -25,23 +34,18 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
   // #region Core
 
-  /** 是否登录 */
-  private get isLoggedIn() {
-    try {
-      return this.wcf.isLogin()
-    }
-    catch { }
-    return false
-  }
-
   /**
    * 启动 wcf
    */
   start() {
+    logger.debug('start')
+    logger.start('Starting WechatferryAgent...')
     this.wcf.start()
-    this.startTimer()
+    this.startLoginCheck()
     this.catchErrors()
-    this.wcf.on('message', msg => this.emit('message', msg))
+    this.wcf.on('message', this.onMessage.bind(this))
+    this.wcf.on('sended', this.onSended.bind(this))
+    logger.success('WechatferryAgent started')
   }
 
   /**
@@ -49,7 +53,9 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param error 要 emit 的错误对象
    */
   stop(error?: any) {
-    this.stopTimer()
+    logger.debug('stop')
+    logger.start('Stopping WechatferryAgent...')
+    this.stopLoginCheck()
     if (this.isLoggedIn) {
       this.emit('logout')
     }
@@ -58,7 +64,29 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     if (error) {
       this.emit('error', error)
     }
+    logger.success('WechatferryAgent stopped')
   }
+
+  private onMessage(msg: WechatferryAgentEventMessage) {
+    this.emit('message', msg)
+    // 每条消息保活 10s
+    this.setAliveCounter(10)
+  }
+
+  private onSended(func: string) {
+    if (func === 'FUNC_IS_LOGIN') {
+      this.setAliveCounter(this.aliveCounter <= 0 ? 10 : 1)
+    }
+    else {
+      this.setAliveCounter(15)
+    }
+  }
+
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  private setAliveCounter = debounce((counter: number) => {
+    // 最多保活 100s
+    this.aliveCounter = Math.min(this.aliveCounter + counter, 100)
+  }, 100, { leading: true })
 
   private catchErrors() {
     process.on('uncaughtException', this.stop.bind(this))
@@ -66,31 +94,50 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     process.on('exit', this.stop.bind(this))
   }
 
-  private checkLogin() {
-    if (this.isLoggedIn) {
-      const userInfo = this.wcf.getUserInfo()
-      this.emit('login', userInfo)
-      this.stopTimer()
-    }
-  }
-
-  private startTimer() {
-    this.stopTimer()
-    this.checkLogin()
-
-    setInterval(() => {
-      if (this.isLoggedIn) {
-        return this.stopTimer()
+  private checkLoginStatus() {
+    if (this.isChecking)
+      return false
+    this.isChecking = true
+    const isLoggedIn = this.wcf.isLogin()
+    // 只有在登录状态改变时才触发事件
+    if (isLoggedIn !== this.isLoggedIn) {
+      logger.info(`Login status changed: ${isLoggedIn ? 'logged in' : 'logged out'}`)
+      this.isLoggedIn = isLoggedIn
+      if (isLoggedIn) {
+        this.emit('login', this.wcf.getUserInfo())
       }
-      this.checkLogin()
-    }, 5000)
+      else {
+        this.emit('logout')
+        this.wcf.resetSdk()
+      }
+    }
+    this.isChecking = false
+    return true
   }
 
-  private stopTimer() {
-    clearInterval(this.timer!)
-    this.timer = null
+  private startLoginCheck(interval = 1000) {
+    logger.debug('Starting login check...')
+    this.stopLoginCheck()
+    this.checkLoginStatus()
+    this.intervalId = setInterval(() => {
+      this.aliveCounter--
+      if (this.isLoggedIn) {
+        if (this.aliveCounter <= 0) {
+          logger.debug('WechatferryAgent may not be alive, checking...')
+          this.checkLoginStatus()
+        }
+      }
+      else {
+        this.checkLoginStatus()
+      }
+    }, interval)
   }
 
+  private stopLoginCheck() {
+    logger.debug('Stopping login check...')
+    clearInterval(this.intervalId!)
+    this.intervalId = null
+  }
   // #endregion
 
   // #region API
@@ -103,10 +150,13 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @returns 查询结果
    */
   dbSqlQuery<T>(db: string, sql: string | Knex.QueryBuilder): T {
-    return this.wcf.execDbQuery(db, typeof sql === 'string' ? sql : sql.toQuery()) as T
+    const query = typeof sql === 'string' ? sql : sql.toQuery()
+    logger.debug(`dbSqlQuery(${db}, ${query})`)
+    return this.wcf.execDbQuery(db, query) as T
   }
 
   getDbList() {
+    logger.debug('getDbList')
     return this.wcf.getDbNames()
   }
 
@@ -117,6 +167,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param contactId 联系人wxid
    */
   inviteChatRoomMembers(roomId: string, contactId: string | string[]) {
+    logger.debug(`inviteChatRoomMembers(${roomId}, ${contactId})`)
     return this.wcf.inviteRoomMembers(roomId, Array.isArray(contactId) ? contactId : [contactId])
   }
 
@@ -127,6 +178,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param contactId 联系人wxid
    */
   addChatRoomMembers(roomId: string, contactId: string | string[]) {
+    logger.debug(`addChatRoomMembers(${roomId}, ${contactId})`)
     return this.wcf.addRoomMembers(roomId, Array.isArray(contactId) ? contactId : [contactId])
   }
 
@@ -137,6 +189,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param contactId 群成员wxid
    */
   removeChatRoomMembers(roomId: string, contactId: string | string[]) {
+    logger.debug(`removeChatRoomMembers(${roomId}, ${contactId})`)
     return this.wcf.delRoomMembers(roomId, Array.isArray(contactId) ? contactId : [contactId])
   }
 
@@ -148,6 +201,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param mentionIdList 要 `@` 的 wxid 列表
    */
   sendText(conversationId: string, text: string, mentionIdList: string[] = []) {
+    logger.debug(`sendText(${conversationId}, ${text}, ${mentionIdList})`)
     return this.wcf.sendTxt(text, conversationId, mentionIdList)
   }
 
@@ -158,6 +212,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param image 图片 fileBox
    */
   sendImage(conversationId: string, image: FileBoxInterface) {
+    logger.debug(`sendImage(${conversationId}, ${image})`)
     return this.wcf.sendImg(image, conversationId)
   }
 
@@ -168,6 +223,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param file 文件 fileBox
    */
   sendFile(conversationId: string, file: FileBoxInterface) {
+    logger.debug(`sendFile(${conversationId}, ${file})`)
     return this.wcf.sendFile(file, conversationId)
   }
 
@@ -178,6 +234,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param desc 富文本内容
    */
   sendRichText(conversationId: string, desc: Omit<ReturnType<wcf.RichText['toObject']>, 'receiver'>) {
+    logger.debug(`sendRichText(${conversationId}, ${desc})`)
     return this.wcf.sendRichText(desc, conversationId)
   }
 
@@ -188,6 +245,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param messageId 要转发的消息 id
    */
   forwardMsg(conversationId: string, messageId: string) {
+    logger.debug(`forwardMsg(${conversationId}, ${messageId})`)
     return this.wcf.forwardMsg(conversationId, messageId)
   }
 
@@ -198,6 +256,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param messageId 消息 ID
    */
   revokeMsg(messageId: string) {
+    logger.debug(`revokeMsg(${messageId})`)
     return this.wcf.revokeMsg(messageId)
   }
 
@@ -208,6 +267,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param timeout 超时
    */
   async downloadFile(message: WechatferryAgentEventMessage, timeout = 30) {
+    logger.debug(`downloadFile(${message}, ${timeout})`)
     switch (message.type) {
       case WechatMessageType.Image:
         return this.downloadImage(message, timeout)
@@ -227,6 +287,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * 群聊详细列表
    */
   getChatRoomList() {
+    logger.debug('getChatRoomList')
     const { db, knex } = useMicroMsgDbQueryBuilder()
 
     const sql = knex
@@ -269,6 +330,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   getChatRoomInfo(
     userName: string,
   ) {
+    logger.debug(`getChatRoomInfo(${userName})`)
     const { db, knex } = useMicroMsgDbQueryBuilder()
 
     const sql = knex
@@ -312,6 +374,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param userName roomId
    */
   getChatRoomMembers(userName: string) {
+    logger.debug(`getChatRoomMembers(${userName})`)
     const roomInfo = this.getChatRoomInfo(userName)
     if (!roomInfo)
       return
@@ -325,6 +388,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param displayNameMap 群成员 wxid 与昵称对照表
    */
   getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string> = {}) {
+    logger.debug(`getChatRoomMembersByMemberIdList(${memberIdList}, ${displayNameMap})`)
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
@@ -354,6 +418,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param userName wxid 或 roomId
    */
   getContactInfo(userName: string) {
+    logger.debug(`getContactInfo(${userName})`)
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex.from('Contact')
       .select('NickName', 'UserName', 'Remark', 'Alias', 'PYInitial', 'RemarkPYInitial', 'LabelIDList')
@@ -377,6 +442,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * 联系人列表
    */
   getContactList() {
+    logger.debug('getContactList')
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
@@ -409,6 +475,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   }
 
   getTagList() {
+    logger.debug('getTagList')
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex.from('ContactLabel')
       .select('LabelID', 'LabelName')
@@ -426,6 +493,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param userName wxid 或 roomId
    */
   getTalkerId(userName: string) {
+    logger.debug(`getTalkerId(${userName})`)
     const { db, knex } = useMSG0DbQueryBuilder()
     const sql = knex
       .with(
@@ -457,6 +525,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     filter?: (sql: Knex.QueryBuilder<MSG>) => void,
     dbNumber?: number,
   ) {
+    logger.debug(`getHistoryMessageList(${userName}, ${filter}, ${dbNumber})`)
     const talkerId = this.getTalkerId(userName)
     const { knex } = useMSG0DbQueryBuilder()
     const sql = knex
@@ -491,7 +560,8 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   /**
    * 获取自己发送的最后一条消息
    */
-  getLastSelfMessage() {
+  getLastSelfMessage(localId?: number) {
+    logger.debug(`getLastSelfMessage(${localId})`)
     const { knex } = useMSG0DbQueryBuilder()
     const sql = knex
       .from('MSG')
@@ -513,6 +583,8 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'StrContent',
         'BytesExtra',
       ).where('IsSender', 1).orderBy('CreateTime', 'desc').limit(1)
+    if (localId)
+      sql.where('localId', localId)
     const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, -1)[0]
     return this.formatHistoryMessage(data)
   }

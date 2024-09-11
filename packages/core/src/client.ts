@@ -20,6 +20,7 @@ export function resolvedWechatferryOptions(options: WechatferryUserOptions): Wec
 
 export interface WechatferryEventMap {
   message: [WxMsg]
+  sended: [string]
 }
 
 const logger = useLogger('core')
@@ -115,8 +116,10 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   /** 发送 WCF Function Request */
   send(req: wcf.Request): wcf.Response {
-    logger.debug('send', wcf.Functions[req.func])
+    const func = wcf.Functions[req.func]
+    logger.debug('send', func)
     const buf = this.socket.send(Buffer.from(req.serialize()))
+    this.emit('sended', func)
     return wcf.Response.deserialize(buf)
   }
 
@@ -132,10 +135,16 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   /** 是否登录 */
   isLogin() {
-    const { status } = this.send(new wcf.Request({
-      func: wcf.Functions.FUNC_IS_LOGIN,
-    }))
-    return status === 1
+    try {
+      const { status } = this.send(new wcf.Request({
+        func: wcf.Functions.FUNC_IS_LOGIN,
+      }))
+      return status === 1
+    }
+    catch (error) {
+      logger.error(error)
+    }
+    return false
   }
 
   /** 登录用户 wxid */

@@ -129,14 +129,18 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   private lastSelfMessageId = ''
+  // TODO: need better way
   async onSendMessage(timeout = 5) {
+    let localId: number | undefined
     for (let cnt = 0; cnt < timeout; cnt++) {
       log.verbose('WechatferryPuppet', `onSendMessage(${timeout}): ${cnt}`)
-      const messagePayload = this.agent.getLastSelfMessage()
+      const messagePayload = this.agent.getLastSelfMessage(localId)
       const messageId = `${messagePayload.MsgSvrID}`
+      if (messageId === '0') {
+        localId = messagePayload.localId
+      }
       log.verbose('WechatferryPuppet', 'onSendMessage() messagePayload %s', JSON.stringify(messagePayload))
       const hasNewMessage = this.lastSelfMessageId !== messageId
-      // TODO: 立即查询出来的 id 是 0，或许有更准确的办法重试
       if (hasNewMessage && messageId !== '0') {
         const message = wechatferryDBMessageToEventMessage(messagePayload)
         log.verbose('WechatferryPuppet', 'onSendMessage() message %s', JSON.stringify(message))
