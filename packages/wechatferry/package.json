@@ -20,20 +20,24 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.mts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.mjs"
     },
     "./agent": {
-      "types": "./dist/agent.d.mts",
+      "types": "./dist/agent.d.ts",
       "default": "./dist/agent.mjs"
     },
     "./puppet": {
-      "types": "./dist/puppet.d.mts",
+      "types": "./dist/puppet.d.ts",
       "default": "./dist/puppet.mjs"
     },
     "./plugins": {
-      "types": "./dist/plugins.d.mts",
+      "types": "./dist/plugins.d.ts",
       "default": "./dist/plugins.mjs"
+    },
+    "./logger": {
+      "types": "./dist/logger.d.ts",
+      "default": "./dist/logger.mjs"
     }
   },
   "main": "dist/index.mjs",
@@ -49,6 +53,7 @@
   "dependencies": {
     "@wechatferry/agent": "workspace:*",
     "@wechatferry/core": "workspace:*",
+    "@wechatferry/logger": "workspace:*",
     "@wechatferry/plugins": "workspace:*",
     "@wechatferry/puppet": "workspace:*"
   }
