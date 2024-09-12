@@ -118,8 +118,11 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     this.intervalId = setInterval(() => {
       this.aliveCounter++
       if (this.isLoggedIn) {
+        if (!this.keepalive) {
+          return this.stopLoginCheck()
+        }
         if (this.aliveCounter >= (typeof this.keepalive === 'number' ? this.keepalive : 30)) {
-          logger.debug('WechatferryAgent may not be alive, checking...')
+          logger.debug(`WechatferryAgent may not be alive, ${this.aliveCounter} >= ${this.keepalive}, checking...`)
           this.checkLoginStatus()
         }
       }
@@ -313,6 +316,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'ContactHeadImgUrl.usrName',
       )
       .select(knex.ref('smallHeadImgUrl').withSchema('ContactHeadImgUrl'))
+      .whereNotNull('Contact.UserName')
 
     const list = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
 
@@ -588,8 +592,8 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   // #region Utils
 
   private formatChatRoomInfo<T extends { UserNameList: string, DisplayNameList: string, Reserved2: string }>(room: T) {
-    const memberIdList = room.UserNameList.split('^G')
-    const DisplayNameList = room.DisplayNameList.split('^G')
+    const memberIdList = room.UserNameList?.split('^G')
+    const DisplayNameList = room.DisplayNameList?.split('^G')
     const displayNameMap: Record<string, string> = {}
     memberIdList.forEach((memberId: string, index: number) => {
       displayNameMap[memberId] = DisplayNameList[index]
