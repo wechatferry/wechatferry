@@ -39,6 +39,12 @@ wechatferry 从 v0.0.9 之后将逐步实现有趣、常用、有用的基于 [W
 
 <ContentPlugins />
 
+## 示例
+
+所有示例的源码可以在 `/examples` 文件夹中找到，欢迎贡献更多示例。
+
+<ContentExamples/>
+
 ## 免责声明
 
 使用本项目则表示您同意并认可以下声明

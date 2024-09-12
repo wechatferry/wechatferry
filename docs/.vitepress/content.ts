@@ -7,6 +7,15 @@ export interface Integration {
   secondary?: string
 }
 
+export interface Example {
+  name: string
+  path: string
+  stackblitz?: boolean
+  codesandbox?: boolean
+  icon?: string
+  icons?: string[]
+}
+
 export const integrations: Integration[] = [
   { name: 'Node', link: '/integrations/node', icon: 'i-logos-nodejs' },
   { name: 'Wechaty', link: '/integrations/wechaty', icon: 'https://wechaty.js.org/img/wechaty-logo.svg' },
@@ -17,4 +26,13 @@ export const plugins: Integration[] = [
   { name: '安全模式', link: '/plugins/safe-mode', icon: 'i-carbon:ai-governance-lifecycle' },
   { name: '群聊禁言', link: '/plugins/room-mute', icon: 'i-carbon:error' },
   { name: '群聊踢人', link: '/plugins/room-kick', icon: 'i-carbon:misuse-outline' },
+]
+
+export const examples: Example[] = [
+  {
+    name: 'Typescript + Agent',
+    path: 'examples/agent',
+    icon: 'i-logos:typescript-icon-round',
+    stackblitz: false,
+  },
 ]
