@@ -108,12 +108,6 @@ importers:
         specifier: 'catalog:'
         version: 1.0.4
 
-  examples/agent:
-    dependencies:
-      wechatferry:
-        specifier: link:../../packages/wechatferry
-        version: link:../../packages/wechatferry
-
   packages/agent:
     dependencies:
       '@wechatferry/core':
@@ -337,6 +331,9 @@ importers:
       '@wechatferry/core':
         specifier: workspace:*
         version: link:../core
+      '@wechatferry/logger':
+        specifier: workspace:*
+        version: link:../logger
       '@wechatferry/plugins':
         specifier: workspace:*
         version: link:../plugins
