@@ -1,0 +1,17 @@
+{
+  "name": "agent",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A node project",
+  "scripts": {
+    "start": "esno src/index.ts",
+    "dev": "esno watch src/index.ts"
+  },
+  "dependencies": {
+    "wechatferry": "link:../../packages/wechatferry"
+  },
+  "devDependencies": {
+    "esno": "^4.7.0"
+  }
+}

@@ -1,6 +1,7 @@
 packages:
   - docs
   - playground
+  - examples/**
   - packages/**
 catalog:
   '@antfu/eslint-config': ^3.0.0
