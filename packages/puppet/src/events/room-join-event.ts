@@ -27,7 +27,7 @@ const OTHER_JOIN_VIA_YOUR_QRCODE_REGEX_LIST = [
   /^" ?(.+)" joined group chat via the QR code you shared/,
 ]
 const OTHER_JOIN_VIA_OTHER_QRCODE_REGEX_LIST = [
-  /^" (.+)"通过扫描"(.+)"分享的二维码加入群聊/,
+  /^" ?(.+)"通过扫描"(.+)"分享的二维码加入群聊/,
   /^"(.+)" joined the group chat via the QR Code shared by "(.+)"/,
 ]
 
@@ -49,7 +49,7 @@ export async function roomJoinParser(puppet: WechatferryPuppet, message: Wechatf
   /**
    * 1. You Invite Other to join the Room
    * (including other join var qr code you shared)
-   * /^你邀请"(.+)"加入了群聊 {2}\$revoke\$/,
+   * /^你邀请"(.+)"加入了群聊/,
    * /^" ?(.+)"通过扫描你分享的二维码加入群聊/,
    */
   const youInviteOther = () => parseTextWithRegexList(content, [...YOU_INVITE_OTHER_REGEX_LIST, ...OTHER_JOIN_VIA_YOUR_QRCODE_REGEX_LIST], async (_, match) => {

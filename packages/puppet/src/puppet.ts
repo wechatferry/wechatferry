@@ -80,7 +80,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     await this.cacheManager.setMessage(messageId, message)
     const event = await parseEvent(this, message)
     const roomId = message.roomid
-    log.verbose('WechatferryPuppet', 'onMessage() event %s', JSON.stringify(event))
+    log.verbose('WechatferryPuppet', 'onMessage() event %s', JSON.stringify(EventType[event.type]))
+    log.verbose('WechatferryPuppet', 'onMessage() event %s', JSON.stringify(event.payload, null, 2))
     switch (event.type) {
       case EventType.Message: {
         this.emit('message', { messageId })
@@ -377,6 +378,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   }
 
   override async messageRawPayloadParser(payload: WechatferryAgentEventMessage) {
+    log.verbose('WechatferryPuppet', 'messageRawPayloadParser(%s)', payload)
     return wechatferryMessageToWechaty(this, payload)
   }
 
@@ -951,10 +953,14 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   private async loadRoomList() {
     log.verbose('WechatferryPuppet', 'loadRoomList()')
-
     const rooms = this.agent.getChatRoomList()
     log.verbose('WechatferryPuppet', `loadRoomList: rooms ${rooms.length}`)
-    return this.cacheManager.setRoomList(rooms)
+    await this.cacheManager.setRoomList(rooms)
+    await Promise.all(rooms.map(async (room) => {
+      const members = this.agent.getChatRoomMembers(room.UserName) ?? []
+      log.verbose('WechatferryPuppet', `loadRoomMemberList: members ${members.length}`)
+      await this.cacheManager.setRoomMemberList(room.UserName, members)
+    }))
   }
 
   private startPuppetHeart(firstTime: boolean = true) {
