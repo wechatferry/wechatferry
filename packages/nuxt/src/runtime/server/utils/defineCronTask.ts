@@ -12,16 +12,12 @@ export function defineCronTask<RT = unknown>(def: CronTask<RT>) {
   const task = defineTask(taskDef)
 
   if (pattern) {
-    const payload: TaskPayload = {
-      scheduledTime: Date.now(),
-    }
-    const context: TaskContext = {}
     const cron = new Cron(pattern, async () => {
+      const payload: TaskPayload = { scheduledTime: Date.now() }
+      const context: TaskContext = {}
       await task.run({ context, payload, name: task.meta?.name || '' })
     })
-    nitroApp.hooks.hook('close', () => {
-      cron.stop()
-    })
+    nitroApp.hooks.hook('close', () => cron.stop())
   }
 
   return task
