@@ -1,6 +1,8 @@
 import type { WechatferryAgentEventMessage } from '@wechatferry/agent'
 import * as PUPPET from 'wechaty-puppet'
+import { WechatMessageType } from '@wechatferry/core'
 import type { WechatferryPuppet } from '../puppet'
+import { parseVerifyMessagePayload } from '../messages/verify'
 import type { EventPayload } from './events'
 
 const FRIENDSHIP_CONFIRM_REGEX_LIST = [
@@ -29,6 +31,19 @@ function isNeedVerify(message: string): boolean {
   })
 }
 
+async function isReceive(message: WechatferryAgentEventMessage) {
+  if (message.type !== WechatMessageType.VerifyMsg && message.type !== WechatMessageType.VerifyMsgEnterprise) {
+    return null
+  }
+
+  try {
+    return await parseVerifyMessagePayload(message.content)
+  }
+  catch {}
+
+  return null
+}
+
 export async function friendShipParser(puppet: WechatferryPuppet, message: WechatferryAgentEventMessage): Promise<EventPayload> {
   const content = message.content.trim()
   const timestamp = message.ts
@@ -47,6 +62,21 @@ export async function friendShipParser(puppet: WechatferryPuppet, message: Wecha
       timestamp,
       type: PUPPET.types.Friendship.Verify,
     } as PUPPET.payloads.FriendshipVerify
+  }
+  else {
+    const payload = await isReceive(message)
+    if (payload) {
+      return {
+        contactId: payload.contact.id,
+        hello: payload.content,
+        id: message.id,
+        scene: Number.parseInt(payload.scene, 10),
+        stranger: payload.stranger,
+        ticket: payload.ticket,
+        timestamp,
+        type: PUPPET.types.Friendship.Receive,
+      } as PUPPET.payloads.FriendshipReceive
+    }
   }
   return null
 }

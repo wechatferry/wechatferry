@@ -89,6 +89,7 @@ export enum WechatMessageType {
   VoipNotify = 52,
   VoipInvite = 53,
   MicroVideo = 62,
+  VerifyMsgEnterprise = 65,
   Transfer = 2000, // 转账
   RedEnvelope = 2001, // 红包
   MiniProgram = 2002, // 小程序
