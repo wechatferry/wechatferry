@@ -77,6 +77,10 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   async onMessage(message: WechatferryAgentEventMessage) {
     const messageId = message.id
+    // fallback system sender
+    if (message.roomid && !message.sender) {
+      message.sender = 'fmessage'
+    }
     await this.cacheManager.setMessage(messageId, message)
     const event = await parseEvent(this, message)
     const roomId = message.roomid

@@ -62,6 +62,7 @@ export const appMsgParser: MessageParser = async (message: WxMsg, ret: PuppetMes
   }
   catch (e) {
     log.warn('appMsgParser', `Error occurred while parse message attachment: ${JSON.stringify(message)} , ${(e as Error).stack}`)
+    ret.type = PUPPET.types.Message.Unknown
   }
 
   return ret
