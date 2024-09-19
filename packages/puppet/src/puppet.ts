@@ -6,11 +6,11 @@ import { createStorage } from 'unstorage'
 import { log } from 'wechaty-puppet'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import localPackageJson from '../package.json'
-import type { PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
+import type { PuppetContact, PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
 import { getMentionText, isRoomId, mentionTextParser } from './utils'
 import { CacheManager } from './cache-manager'
 import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
-import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty } from './schema-mapper'
+import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty, wechatyContactToWechatferry } from './schema-mapper'
 import { EventType, parseEvent } from './events'
 
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {
@@ -895,9 +895,16 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     return this.contactRawPayloadParser(contact)
   }
 
-  async updateContactCache(contactId: string) {
+  // TODO: need better way to set temp contact
+  async updateContactCache(contactId: string, _contact?: PuppetContact) {
     log.verbose('WechatferryPuppet', `updateContactCache(${contactId})`)
-    const contact = this.agent.getContactInfo(contactId)
+    let contact: WechatferryAgentContact | null = null
+    if (_contact) {
+      contact = await wechatyContactToWechatferry(_contact)
+    }
+    else {
+      contact = this.agent.getContactInfo(contactId) ?? null
+    }
     if (!contact) {
       return null
     }

@@ -39,7 +39,7 @@ async function isReceive(message: WechatferryAgentEventMessage) {
   try {
     return await parseVerifyMessagePayload(message.content)
   }
-  catch {}
+  catch { }
 
   return null
 }
@@ -66,6 +66,7 @@ export async function friendShipParser(puppet: WechatferryPuppet, message: Wecha
   else {
     const payload = await isReceive(message)
     if (payload) {
+      await puppet.updateContactCache(payload.contact.id, payload.contact)
       return {
         contactId: payload.contact.id,
         hello: payload.content,

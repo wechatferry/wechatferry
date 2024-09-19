@@ -26,6 +26,20 @@ export function wechatferryContactToWechaty(contact: WechatferryAgentContact): P
   }
 }
 
+export function wechatyContactToWechatferry(contact: PUPPET.payloads.Contact): WechatferryAgentContact {
+  return {
+    LabelIDList: '',
+    NickName: contact.name,
+    PYInitial: '',
+    Remark: contact.alias ?? '',
+    RemarkPYInitial: '',
+    smallHeadImgUrl: contact.avatar,
+    tags: [],
+    UserName: contact.id,
+    Alias: contact.handle,
+  }
+}
+
 declare module 'wechaty-puppet/payloads' {
   export interface Contact {
     tags: string[]
