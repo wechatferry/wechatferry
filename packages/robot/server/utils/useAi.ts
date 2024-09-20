@@ -33,5 +33,7 @@ export function useAi() {
 
   return {
     siliconflow,
+    deepseek,
+    openai,
   }
 }
