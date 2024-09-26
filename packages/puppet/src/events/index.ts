@@ -1,5 +1,5 @@
 import { roomTopicParser } from './room-topic-event'
-import { EventType, addEventParser, parseEvent } from './events'
+import { EventType, addEventParser } from './events'
 import { messageParser } from './message-event'
 import { roomInviteParser } from './room-invite-event'
 import { roomJoinParser } from './room-join-event'
@@ -15,4 +15,4 @@ addEventParser(EventType.RoomLeave, roomLeaveParser)
 addEventParser(EventType.RoomTopic, roomTopicParser)
 addEventParser(EventType.Message, messageParser)
 
-export { parseEvent, EventType }
+export * from './events'

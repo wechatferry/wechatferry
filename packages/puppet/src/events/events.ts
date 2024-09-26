@@ -3,6 +3,14 @@ import { log } from 'wechaty-puppet'
 import type * as PUPPET from 'wechaty-puppet'
 import type { WechatferryPuppet } from '../puppet'
 
+export * from './room-topic-event'
+export * from './message-event'
+export * from './room-invite-event'
+export * from './room-join-event'
+export * from './room-leave-event'
+export * from './friendship-event'
+export * from './post-event'
+
 export enum EventType {
   Message,
   Post,
