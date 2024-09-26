@@ -8,7 +8,7 @@ import { WechatMessageType, type Wechatferry, type wcf } from '@wechatferry/core
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
 import { useLogger } from '@wechatferry/logger'
-import type { PromiseReturnType, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
+import type { WechatferryAgentChatRoom, WechatferryAgentChatRoomMember, WechatferryAgentContact, WechatferryAgentContactTag, WechatferryAgentDBMessage, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
 import { decodeBytesExtra, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
 import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
@@ -238,6 +238,14 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   }
 
   /**
+   * 发送 xml 消息
+   * @deprecated 占位，暂时不支持
+   */
+  sendXml<T>(_conversationId: string, _xml: string | Record<string, any> | T) {
+    throw new Error('Not implemented')
+  }
+
+  /**
    * 转发消息
    *
    * @param conversationId 会话id，可以是 wxid 或者 roomid
@@ -245,7 +253,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    */
   forwardMsg(conversationId: string, messageId: string) {
     logger.debug(`forwardMsg(${conversationId}, ${messageId})`)
-    return this.wcf.forwardMsg(conversationId, messageId)
+    return this.wcf.forwardMsg(messageId, conversationId)
   }
 
   /**
@@ -292,24 +300,24 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     const sql = knex
       .from('ChatRoomInfo')
       .select(
-        'Announcement',
-        'AnnouncementEditor',
-        'AnnouncementPublishTime',
-        'InfoVersion',
+        knex.ref('Announcement').as('announcement'),
+        knex.ref('AnnouncementEditor').as('announcementEditor'),
+        knex.ref('AnnouncementPublishTime').as('announcementPublishTime'),
+        knex.ref('InfoVersion').as('infoVersion'),
       )
       .leftJoin('Contact', 'ChatRoomInfo.ChatRoomName', 'Contact.UserName')
       .select(
-        knex.ref('NickName').withSchema('Contact'),
-        knex.ref('UserName').withSchema('Contact'),
+        knex.ref('NickName').withSchema('Contact').as('nickName'),
+        knex.ref('UserName').withSchema('Contact').as('userName'),
       )
       .leftJoin(
         'ChatRoom',
         'ChatRoomInfo.ChatRoomName',
         'ChatRoom.ChatRoomName',
       )
-      .select(knex.ref('Reserved2').withSchema('ChatRoom'))
-      .select(knex.ref('UserNameList').withSchema('ChatRoom'))
-      .select(knex.ref('DisplayNameList').withSchema('ChatRoom'))
+      .select(knex.ref('Reserved2').withSchema('ChatRoom').as('ownerUserName'))
+      .select(knex.ref('UserNameList').withSchema('ChatRoom').as('userNameList'))
+      .select(knex.ref('DisplayNameList').withSchema('ChatRoom').as('displayNameList'))
       .leftJoin(
         'ContactHeadImgUrl',
         'Contact.UserName',
@@ -318,7 +326,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       .select(knex.ref('smallHeadImgUrl').withSchema('ContactHeadImgUrl'))
       .whereNotNull('Contact.UserName')
 
-    const list = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    const list = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
 
     return list.map(room => this.formatChatRoomInfo(room))
   }
@@ -336,15 +344,15 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     const sql = knex
       .from('ChatRoomInfo')
       .select(
-        'Announcement',
-        'AnnouncementEditor',
-        'AnnouncementPublishTime',
-        'InfoVersion',
+        knex.ref('Announcement').as('announcement'),
+        knex.ref('AnnouncementEditor').as('announcementEditor'),
+        knex.ref('AnnouncementPublishTime').as('announcementPublishTime'),
+        knex.ref('InfoVersion').as('infoVersion'),
       )
       .leftJoin('Contact', 'ChatRoomInfo.ChatRoomName', 'Contact.UserName')
       .select(
-        knex.ref('NickName').withSchema('Contact'),
-        knex.ref('UserName').withSchema('Contact'),
+        knex.ref('NickName').withSchema('Contact').as('nickName'),
+        knex.ref('UserName').withSchema('Contact').as('userName'),
       )
       .leftJoin(
         'ContactHeadImgUrl',
@@ -357,12 +365,12 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'ChatRoomInfo.ChatRoomName',
         'ChatRoom.ChatRoomName',
       )
-      .select(knex.ref('Reserved2').withSchema('ChatRoom'))
-      .select(knex.ref('UserNameList').withSchema('ChatRoom'))
-      .select(knex.ref('DisplayNameList').withSchema('ChatRoom'))
+      .select(knex.ref('Reserved2').withSchema('ChatRoom').as('ownerUserName'))
+      .select(knex.ref('UserNameList').withSchema('ChatRoom').as('userNameList'))
+      .select(knex.ref('DisplayNameList').withSchema('ChatRoom').as('displayNameList'))
       .where('ChatRoomInfo.ChatRoomName', userName)
 
-    const [data] = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    const [data] = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
     if (!data)
       return
 
@@ -387,12 +395,12 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * @param memberIdList 群成员 wxid 列表
    * @param displayNameMap 群成员 wxid 与昵称对照表
    */
-  getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string> = {}) {
+  getChatRoomMembersByMemberIdList(memberIdList: string[], displayNameMap: Record<string, string> = {}): WechatferryAgentChatRoomMember[] {
     logger.debug(`getChatRoomMembersByMemberIdList(${memberIdList}, ${displayNameMap})`)
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
-      .select('NickName', 'UserName', 'Remark')
+      .select(knex.ref('NickName').as('nickName'), knex.ref('UserName').as('userName'), knex.ref('Remark').as('remark'))
       .whereIn(
         'UserName',
         memberIdList,
@@ -403,12 +411,12 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
         'ContactHeadImgUrl.usrName',
       )
       .select(knex.ref('smallHeadImgUrl').withSchema('ContactHeadImgUrl'))
-    const results = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    const results = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
 
     const enrichedResults = results.map(result => ({
       ...result,
       /** 群昵称 */
-      DisplayName: displayNameMap[result.UserName] || '',
+      displayName: displayNameMap[result.userName] || '',
     }))
     return enrichedResults
   }
@@ -417,11 +425,19 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
    * 联系人信息
    * @param userName wxid 或 roomId
    */
-  getContactInfo(userName: string) {
+  getContactInfo(userName: string): WechatferryAgentContact | undefined {
     logger.debug(`getContactInfo(${userName})`)
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex.from('Contact')
-      .select('NickName', 'UserName', 'Remark', 'Alias', 'PYInitial', 'RemarkPYInitial', 'LabelIDList')
+      .select(
+        knex.ref('NickName').as('nickName'),
+        knex.ref('UserName').as('userName'),
+        knex.ref('Remark').as('remark'),
+        knex.ref('Alias').as('alias'),
+        knex.ref('PYInitial').as('pinYinInitial'),
+        knex.ref('RemarkPYInitial').as('remarkPinYinInitial'),
+        knex.ref('LabelIDList').as('labelIdList'),
+      )
       .leftJoin(
         'ContactHeadImgUrl',
         'Contact.UserName',
@@ -429,25 +445,32 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       )
       .select(knex.ref('smallHeadImgUrl').withSchema('ContactHeadImgUrl'))
       .where('UserName', userName)
-    const [data] = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    const [data] = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
     if (!data)
       return
     return {
       ...data,
-      tags: data.LabelIDList?.split(',').filter(v => v) ?? [],
+      tags: data.labelIdList?.split(',').filter(v => v) ?? [],
     }
   }
 
   /**
    * 联系人列表
    */
-  getContactList() {
+  getContactList(): WechatferryAgentContact[] {
     logger.debug('getContactList')
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex
       .from('Contact')
-      .select('NickName', 'UserName', 'Remark', 'Alias', 'PYInitial', 'RemarkPYInitial', 'LabelIDList')
-      .leftJoin(
+      .select(
+        knex.ref('NickName').as('nickName'),
+        knex.ref('UserName').as('userName'),
+        knex.ref('Remark').as('remark'),
+        knex.ref('Alias').as('alias'),
+        knex.ref('PYInitial').as('pinYinInitial'),
+        knex.ref('RemarkPYInitial').as('remarkPinYinInitial'),
+        knex.ref('LabelIDList').as('labelIdList'),
+      ).leftJoin(
         'ContactHeadImgUrl',
         'Contact.UserName',
         'ContactHeadImgUrl.usrName',
@@ -464,23 +487,26 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       .andWhereNot('UserName', 'like', '%chatroom%')
       .orderBy('Remark', 'desc')
 
-    const result = this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    const result = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
 
     return result.map((v) => {
       return {
         ...v,
-        tags: v?.LabelIDList?.split(',').filter(v => v) ?? [],
+        tags: v?.labelIdList?.split(',').filter(v => v) ?? [],
       }
     })
   }
 
-  getTagList() {
+  getContactTagList(): WechatferryAgentContactTag[] {
     logger.debug('getTagList')
     const { db, knex } = useMicroMsgDbQueryBuilder()
     const sql = knex.from('ContactLabel')
-      .select('LabelID', 'LabelName')
+      .select(
+        knex.ref('LabelID').as('labelId'),
+        knex.ref('LabelName').as('labelName'),
+      )
 
-    return this.dbSqlQuery<PromiseReturnType<typeof sql>>(db, sql)
+    return this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
   }
 
   // #endregion
@@ -531,29 +557,30 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     const sql = knex
       .from('MSG')
       .select(
-        'localId',
-        'TalkerId',
-        'MsgSvrID',
-        'Type',
-        'SubType',
-        'IsSender',
-        'CreateTime',
-        'Sequence',
-        'StatusEx',
-        'FlagEx',
-        'Status',
-        'MsgServerSeq',
-        'MsgSequence',
-        'StrTalker',
-        'StrContent',
-        'BytesExtra',
+        knex.ref('localId').as('localId'),
+        knex.ref('TalkerId').as('talkerId'),
+        knex.ref('MsgSvrID').as('msgSvrId'),
+        knex.ref('Type').as('type'),
+        knex.ref('SubType').as('subType'),
+        knex.ref('IsSender').as('isSender'),
+        knex.ref('CreateTime').as('createTime'),
+        knex.ref('Sequence').as('sequence'),
+        knex.ref('StatusEx').as('statusEx'),
+        knex.ref('FlagEx').as('flagEx'),
+        knex.ref('Status').as('status'),
+        knex.ref('MsgServerSeq').as('msgServerSeq'),
+        knex.ref('MsgSequence').as('msgSequence'),
+        knex.ref('StrTalker').as('strTalker'),
+        knex.ref('StrContent').as('strContent'),
+        knex.ref('BytesExtra').as('bytesExtra'),
+        knex.ref('CompressContent').as('compressContent'),
       )
       .where('TalkerId', talkerId)
       .orderBy('CreateTime', 'desc')
 
     filter?.(sql)
 
-    const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, dbNumber)
+    const data = this.dbSqlQueryMSG<Awaited<typeof sql>>(sql, dbNumber)
     return data.map(this.formatHistoryMessage.bind(this))
   }
 
@@ -566,59 +593,60 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     const sql = knex
       .from('MSG')
       .select(
-        'localId',
-        'TalkerId',
-        'MsgSvrID',
-        'Type',
-        'SubType',
-        'IsSender',
-        'CreateTime',
-        'Sequence',
-        'StatusEx',
-        'FlagEx',
-        'Status',
-        'MsgServerSeq',
-        'MsgSequence',
-        'StrTalker',
-        'StrContent',
-        'BytesExtra',
-      ).where('IsSender', 1).orderBy('CreateTime', 'desc').limit(1)
+        knex.ref('localId').as('localId'),
+        knex.ref('TalkerId').as('talkerId'),
+        knex.ref('MsgSvrID').as('msgSvrId'),
+        knex.ref('Type').as('type'),
+        knex.ref('SubType').as('subType'),
+        knex.ref('IsSender').as('isSender'),
+        knex.ref('CreateTime').as('createTime'),
+        knex.ref('Sequence').as('sequence'),
+        knex.ref('StatusEx').as('statusEx'),
+        knex.ref('FlagEx').as('flagEx'),
+        knex.ref('Status').as('status'),
+        knex.ref('MsgServerSeq').as('msgServerSeq'),
+        knex.ref('MsgSequence').as('msgSequence'),
+        knex.ref('StrTalker').as('strTalker'),
+        knex.ref('StrContent').as('strContent'),
+        knex.ref('BytesExtra').as('bytesExtra'),
+        knex.ref('CompressContent').as('compressContent'),
+      )
+      .where('IsSender', 1).orderBy('CreateTime', 'desc').limit(1)
     if (localId)
       sql.where('localId', localId)
-    const data = this.dbSqlQueryMSG<PromiseReturnType<typeof sql>>(sql, -1)[0]
+    const data = this.dbSqlQueryMSG<Awaited<typeof sql>>(sql, -1)[0]
     return this.formatHistoryMessage(data)
   }
 
   // #region Utils
 
-  private formatChatRoomInfo<T extends { UserNameList: string, DisplayNameList: string, Reserved2: string }>(room: T) {
-    const memberIdList = room.UserNameList?.split('^G')
-    const DisplayNameList = room.DisplayNameList?.split('^G')
+  private formatChatRoomInfo<T extends (Omit<WechatferryAgentChatRoom, 'memberIdList' | 'displayNameList' | 'displayNameMap'> & { displayNameList: string })>(room: T): WechatferryAgentChatRoom {
+    const memberIdList = room.userNameList?.split('^G')
+    const displayNameList = room.displayNameList?.split('^G')
     const displayNameMap: Record<string, string> = {}
     memberIdList.forEach((memberId: string, index: number) => {
-      displayNameMap[memberId] = DisplayNameList[index]
+      displayNameMap[memberId] = displayNameList[index]
     })
     return {
       ...room,
-      /** 群主 */
-      ownerUserName: room.Reserved2,
       /** 群成员 wxid 列表 */
       memberIdList,
       /** 群成员昵称列表 */
-      DisplayNameList,
+      displayNameList,
       /** 群成员{wxid:昵称}对照表 */
       displayNameMap,
     }
   }
 
-  private formatHistoryMessage<T extends { BytesExtra: Buffer }>(msg: T) {
-    const { BytesExtra, ...message } = msg
-    const BytesExtraObj = decodeBytesExtra(msg.BytesExtra)
-    const extra = parseBytesExtra(BytesExtraObj)
+  private formatHistoryMessage<T extends Omit<WechatferryAgentDBMessage, 'talkerWxid' | 'parsedBytesExtra'>>(msg: T): WechatferryAgentDBMessage {
+    const { bytesExtra, ...message } = msg
+    const BytesExtraObj = decodeBytesExtra(bytesExtra)
+    const parsedBytesExtra = parseBytesExtra(BytesExtraObj)
     return {
       ...message,
-      talkerWxid: extra.wxid || this.wcf.getSelfWxid(),
-      Extra: extra,
+      bytesExtra,
+      talkerWxid: parsedBytesExtra.wxid || this.wcf.getSelfWxid(),
+      parsedBytesExtra,
     }
   }
 

@@ -3,12 +3,12 @@ import type * as PUPPET from 'wechaty-puppet'
 
 export function wechatferryRoomToWechaty(contact: WechatferryAgentChatRoom): PUPPET.payloads.Room {
   return {
-    id: contact.UserName,
+    id: contact.userName,
     avatar: contact.smallHeadImgUrl,
     external: false,
     ownerId: contact.ownerUserName || '',
-    announce: contact.Announcement || '',
-    topic: contact.NickName || '',
+    announce: contact.announcement || '',
+    topic: contact.nickName || '',
     adminIdList: [],
     memberIdList: contact.memberIdList,
   }
@@ -17,10 +17,10 @@ export function wechatferryRoomToWechaty(contact: WechatferryAgentChatRoom): PUP
 export function wechatferryRoomMemberToWechaty(chatRoomMember: WechatferryAgentChatRoomMember): PUPPET.payloads.RoomMember {
   return {
     avatar: chatRoomMember.smallHeadImgUrl,
-    id: chatRoomMember.UserName,
-    inviterId: chatRoomMember.UserName,
-    name: chatRoomMember?.Remark || chatRoomMember?.NickName,
-    roomAlias: chatRoomMember.DisplayName,
+    id: chatRoomMember.userName,
+    inviterId: chatRoomMember.userName,
+    name: chatRoomMember?.remark || chatRoomMember?.nickName,
+    roomAlias: chatRoomMember.displayName,
   }
 }
 

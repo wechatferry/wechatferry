@@ -63,6 +63,7 @@ export interface MSG {
   StrTalker: string
   StrContent: string
   BytesExtra: Buffer
+  CompressContent: Buffer
 }
 
 export interface Name2ID {

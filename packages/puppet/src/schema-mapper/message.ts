@@ -41,19 +41,19 @@ export function wechatferryDBMessageToWechaty(puppet: PUPPET.Puppet, message: We
 }
 
 export function wechatferryDBMessageToEventMessage(message: WechatferryAgentDBMessage) {
-  const isRoom = isRoomId(message.StrTalker)
+  const isRoom = isRoomId(message.strTalker)
   return {
-    content: message.StrContent,
-    extra: message.Extra.extra,
-    id: `${message.MsgSvrID}`,
+    content: message.strContent,
+    extra: message.parsedBytesExtra.extra,
+    id: `${message.msgSvrId}`,
     is_group: isRoom,
-    is_self: message.IsSender === 1,
-    roomid: isRoom ? message.StrTalker : '',
+    is_self: message.isSender === 1,
+    roomid: isRoom ? message.strTalker : '',
     sender: `${message.talkerWxid}`,
-    ts: message.CreateTime,
-    type: message.Type,
-    xml: message.Extra.xml,
-    sign: message.Extra.sign,
-    thumb: message.Extra.thumb,
+    ts: message.createTime,
+    type: message.type,
+    xml: message.parsedBytesExtra.xml,
+    sign: message.parsedBytesExtra.sign,
+    thumb: message.parsedBytesExtra.thumb,
   } as WechatferryAgentEventMessage
 }

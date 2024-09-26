@@ -25,8 +25,8 @@ export function getMentionText(mentions: string[] = [], chatroomMembers: Wechatf
 
   mentionText = mentions.reduce((acc, mentionId) => {
     chatroomMembers.filter((member) => {
-      if (member.UserName === mentionId) {
-        acc += `@${member.DisplayName} `
+      if (member.userName === mentionId) {
+        acc += `@${member.displayName} `
         return true
       }
       return false

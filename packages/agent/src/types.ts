@@ -1,5 +1,6 @@
+import type { Buffer } from 'node:buffer'
 import type { UserInfo, Wechatferry, WxMsg } from '@wechatferry/core'
-import type { WechatferryAgent } from './agent'
+import type { parseBytesExtra } from './utils'
 
 export interface WechatferryAgentEventMap {
   message: [WxMsg]
@@ -28,10 +29,65 @@ export interface WechatferryAgentOptions extends Required<WechatferryAgentUserOp
 
 }
 
-export type PromiseReturnType<T> = T extends Promise<infer R> ? R : never
+export interface WechatferryAgentChatRoomMember {
+  displayName: string
+  userName: string
+  nickName: string
+  remark: string
+  smallHeadImgUrl: string
+}
 
-export type WechatferryAgentChatRoomMember = Exclude<ReturnType<WechatferryAgent['getChatRoomMembers']>, undefined>[number]
-export type WechatferryAgentContact = Exclude<ReturnType<WechatferryAgent['getContactInfo']>, undefined>
-export type WechatferryAgentChatRoom = Exclude<ReturnType<WechatferryAgent['getChatRoomInfo']>, undefined>
+export interface WechatferryAgentContact {
+  tags: string[]
+  userName: string
+  alias?: string | undefined
+  nickName: string
+  pinYinInitial: string
+  remark: string
+  remarkPinYinInitial: string
+  labelIdList: string
+  smallHeadImgUrl: string
+}
+
+export interface WechatferryAgentChatRoom {
+  announcement: string
+  announcementEditor: string
+  announcementPublishTime: string
+  infoVersion: string
+  nickName: string
+  userName: string
+  ownerUserName: string
+  userNameList: string
+  smallHeadImgUrl: string
+  memberIdList: string[]
+  displayNameList: string[]
+  displayNameMap: Record<string, string>
+}
+
 export type WechatferryAgentEventMessage = WxMsg
-export type WechatferryAgentDBMessage = Exclude<ReturnType<WechatferryAgent['getLastSelfMessage']>, undefined>
+export interface WechatferryAgentDBMessage {
+  localId?: number
+  talkerId?: number
+  msgSvrId: number
+  type: number
+  subType: number
+  isSender: number
+  createTime: number
+  sequence?: number
+  statusEx?: number
+  flagEx: number
+  status: number
+  msgServerSeq: number
+  msgSequence: number
+  strTalker: string
+  strContent: string
+  bytesExtra: Buffer
+  parsedBytesExtra: ReturnType<typeof parseBytesExtra>
+  compressContent: Buffer
+  talkerWxid: string
+}
+
+export interface WechatferryAgentContactTag {
+  labelId: string
+  labelName: string
+}

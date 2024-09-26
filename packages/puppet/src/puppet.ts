@@ -57,7 +57,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
         `login(${userId}) called failed: User not found.`,
       )
     }
-    super.login(user.UserName)
+    super.login(user.userName)
     this.emit('ready')
     this.agent.on('message', this.onMessage.bind(this))
   }
@@ -139,7 +139,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     for (let cnt = 0; cnt < timeout; cnt++) {
       log.verbose('WechatferryPuppet', `onSendMessage(${timeout}): ${cnt}`)
       const messagePayload = this.agent.getLastSelfMessage(localId)
-      const messageId = `${messagePayload.MsgSvrID}`
+      const messageId = `${messagePayload.msgSvrId}`
       if (messageId === '0') {
         localId = messagePayload.localId
       }
@@ -205,7 +205,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       )
     }
 
-    return contact.Alias
+    return contact.alias
   }
 
   override async contactPhone(contactId: string): Promise<string[]>
@@ -288,17 +288,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     }
     const contact = await parseContactCardMessagePayload(message.text)
     // push fake contact to cache
-    await this.cacheManager.setContact(contact.id, {
-      LabelIDList: '',
-      NickName: contact.name,
-      PYInitial: '',
-      Remark: contact.alias ?? '',
-      RemarkPYInitial: '',
-      smallHeadImgUrl: contact.avatar,
-      tags: contact.tags,
-      UserName: contact.id,
-      Alias: contact.alias,
-    })
+    await this.cacheManager.setContact(contact.id, wechatyContactToWechatferry(contact))
     return contact.id
   }
 
@@ -764,7 +754,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       const contact = await this.cacheManager.getContact(contactId)
       return contact?.tags || []
     }
-    return this.agent.getTagList().map(v => v.LabelID)
+    return this.agent.getContactTagList().map(v => v.labelId)
   }
 
   // #endregion
@@ -949,7 +939,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
       await this.cacheManager.deleteRoomMember(roomId, contactId)
       return null
     }
-    this.dirtyPayload(PUPPET.types.Payload.RoomMember, member.UserName)
+    this.dirtyPayload(PUPPET.types.Payload.RoomMember, member.userName)
     await this.cacheManager.setRoomMember(roomId, contactId, member)
     return member
   }
@@ -968,9 +958,9 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     log.verbose('WechatferryPuppet', `loadRoomList: rooms ${rooms.length}`)
     await this.cacheManager.setRoomList(rooms)
     await Promise.all(rooms.map(async (room) => {
-      const members = this.agent.getChatRoomMembers(room.UserName) ?? []
+      const members = this.agent.getChatRoomMembers(room.userName) ?? []
       log.verbose('WechatferryPuppet', `loadRoomMemberList: members ${members.length}`)
-      await this.cacheManager.setRoomMemberList(room.UserName, members)
+      await this.cacheManager.setRoomMemberList(room.userName, members)
     }))
   }
 

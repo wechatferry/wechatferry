@@ -84,7 +84,7 @@ export class CacheManager {
   }
 
   setContactList(payload: WechatferryAgentContact[]) {
-    return Promise.all(payload.map(contact => this.contactCache.setItem(contact.UserName, contact)))
+    return Promise.all(payload.map(contact => this.contactCache.setItem(contact.userName, contact)))
   }
 
   // #region Room
@@ -115,7 +115,7 @@ export class CacheManager {
   }
 
   setRoomList(payload: WechatferryAgentChatRoom[]) {
-    return Promise.all(payload.map(room => this.roomCache.setItem(room.UserName, room)))
+    return Promise.all(payload.map(room => this.roomCache.setItem(room.userName, room)))
   }
 
   // #region Room Invitation
@@ -153,7 +153,7 @@ export class CacheManager {
 
   setRoomMemberList(roomId: string, payload: WechatferryAgentChatRoomMember[]) {
     const cache = this.getRoomMemberCache(roomId)
-    return Promise.all(payload.map(member => cache.setItem(member.UserName, member)))
+    return Promise.all(payload.map(member => cache.setItem(member.userName, member)))
   }
 
   getRoomMemberList(roomId: string) {
