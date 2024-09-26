@@ -3,13 +3,13 @@ import process from 'node:process'
 import { setTimeout } from 'node:timers/promises'
 import os from 'node:os'
 import { existsSync } from 'node:fs'
-import type { Buffer } from 'node:buffer'
+import { Buffer } from 'node:buffer'
 import { WechatMessageType, type Wechatferry, type wcf } from '@wechatferry/core'
 import { FileBox, type FileBoxInterface } from 'file-box'
 import type { Knex } from 'knex'
 import { useLogger } from '@wechatferry/logger'
 import type { WechatferryAgentChatRoom, WechatferryAgentChatRoomMember, WechatferryAgentContact, WechatferryAgentContactTag, WechatferryAgentDBMessage, WechatferryAgentEventMap, WechatferryAgentEventMessage, WechatferryAgentUserOptions } from './types'
-import { decodeBytesExtra, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
+import { decodeBytesExtra, lz4Compare, lz4Decompress, parseBytesExtra, resolvedWechatferryAgentOptions } from './utils'
 import type { MSG } from './knex'
 import { useMSG0DbQueryBuilder, useMicroMsgDbQueryBuilder } from './knex'
 
@@ -239,10 +239,33 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
 
   /**
    * 发送 xml 消息
-   * @deprecated 占位，暂时不支持
+   *
+   * @description 通过修改现有 xml 消息然后转发该消息实现发送
+   * @description 并非所有的 xml 消息都能发送
    */
-  sendXml<T>(_conversationId: string, _xml: string | Record<string, any> | T) {
-    throw new Error('Not implemented')
+  sendXml(conversationId: string, xml: string) {
+    logger.debug(`sendXml(${conversationId}, ${xml})`)
+    const { db, knex } = useMSG0DbQueryBuilder()
+    const sql = knex.from('MSG').limit(1)
+      .where('Type', 49)
+      .where('SubType', 5)
+    const [msg] = this.dbSqlQuery<Awaited<typeof sql>>(db, sql)
+    if (!msg) {
+      logger.warn(`sendXml(): 必须手动发送或接收至少一条 xml 消息后才能使用`)
+      return -1
+    }
+    console.warn(lz4Decompress(msg.CompressContent, msg.CompressContent.length << 10).toString())
+    const input = Buffer.from(xml)
+    const compressed = lz4Compare(input)
+    const MsgSvrID = `10${Date.now()}`
+    this.dbSqlQuery(db, knex.from('MSG')
+      .update('MsgSvrID', MsgSvrID)
+      .update('CompressContent', Buffer.from(compressed))
+      .update('BytesExtra', Buffer.from(''))
+      .where('localId', msg.localId))
+
+    console.warn(lz4Decompress(compressed, compressed.length << 10).toString())
+    return this.forwardMsg(conversationId, MsgSvrID)
   }
 
   /**
