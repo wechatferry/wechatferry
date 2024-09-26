@@ -31,7 +31,7 @@ export const plugins: Integration[] = [
 export const examples: Example[] = [
   {
     name: 'Typescript + Agent',
-    path: 'examples/agent',
+    path: 'agent',
     icon: 'i-logos:typescript-icon-round',
     stackblitz: false,
   },
