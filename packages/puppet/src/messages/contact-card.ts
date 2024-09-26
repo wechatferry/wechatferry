@@ -47,3 +47,34 @@ export async function parseContactCardMessagePayload(messageContent: string) {
     type: PUPPET.types.Contact.Unknown,
   } as PUPPET.payloads.Contact
 }
+
+export async function buildContactCardXmlMessagePayload(contact: PUPPET.payloads.Contact) {
+  return {
+    msg: {
+      $: {
+        bigheadimgurl: contact.avatar.replace('/132', '/0'),
+        smallheadimgurl: contact.avatar,
+        username: contact.id,
+        nickname: contact.name,
+        fullpy: '',
+        shortpy: '',
+        alias: '',
+        imagestatus: '3',
+        scene: '17',
+        province: '',
+        city: '',
+        sign: '',
+        sex: contact.gender.toString(),
+        certflag: '0',
+        certinfo: '',
+        brandIconUrl: '',
+        brandHomeUrl: '',
+        brandSubscriptConfigUrl: '',
+        brandFlags: '0',
+        regionCode: '',
+        biznamecardinfo: '',
+        antispamticket: '',
+      },
+    },
+  } as ContactCardXmlSchema
+}

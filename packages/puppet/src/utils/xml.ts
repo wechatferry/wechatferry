@@ -9,3 +9,13 @@ export async function xmlToJson<T extends Record<string, any>>(xml: string, opti
     ...options,
   })
 }
+
+export async function jsonToXml(data: Record<string, any>): Promise<string> {
+  const builder = new xml2js.Builder({
+    xmldec: {
+      version: '1.0',
+    },
+  })
+  const xml = builder.buildObject(data)
+  return xml
+}
