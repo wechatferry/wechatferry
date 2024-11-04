@@ -151,11 +151,11 @@ export class MySDK extends EventEmitter<WechatferrySDKEventMap> implements Wecha
   }
 
   get cmdUrl() {
-    return 'tpc://...'
+    return 'tcp://...'
   }
 
   get msgUrl() {
-    return 'tpc://...'
+    return 'tcp://...'
   }
 }
 const sdk = new MySDK()
