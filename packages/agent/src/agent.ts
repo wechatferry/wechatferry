@@ -539,11 +539,13 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
   /**
    * talkerId
    * @description 用于查询聊天记录
+   * @deprecated 现在查询聊天记录不需要 talkerId 了
    * @param userName wxid 或 roomId
+   * @param dbNumber 指定要查询 MSG 分表，默认为 0
    */
-  getTalkerId(userName: string) {
+  getTalkerId(userName: string, dbNumber: number = 0) {
     logger.debug(`getTalkerId(${userName})`)
-    const { db, knex } = useMSG0DbQueryBuilder()
+    const { knex } = useMSG0DbQueryBuilder()
     const sql = knex
       .with(
         'TalkerId',
@@ -555,7 +557,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
       .from('TalkerId')
       .where('UsrName', userName)
 
-    const [data] = this.dbSqlQuery<{ TalkerId: string }[]>(db, sql)
+    const [data] = this.dbSqlQueryMSG<{ TalkerId: string }[]>(sql, dbNumber)
     if (!data)
       return
     return data.TalkerId
@@ -575,30 +577,37 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     dbNumber?: number,
   ) {
     logger.debug(`getHistoryMessageList(${userName}, ${filter}, ${dbNumber})`)
-    const talkerId = this.getTalkerId(userName)
     const { knex } = useMSG0DbQueryBuilder()
     const sql = knex
       .from('MSG')
       .select(
-        knex.ref('localId').as('localId'),
-        knex.ref('TalkerId').as('talkerId'),
-        knex.ref('MsgSvrID').as('msgSvrId'),
-        knex.ref('Type').as('type'),
-        knex.ref('SubType').as('subType'),
-        knex.ref('IsSender').as('isSender'),
-        knex.ref('CreateTime').as('createTime'),
-        knex.ref('Sequence').as('sequence'),
-        knex.ref('StatusEx').as('statusEx'),
-        knex.ref('FlagEx').as('flagEx'),
-        knex.ref('Status').as('status'),
-        knex.ref('MsgServerSeq').as('msgServerSeq'),
-        knex.ref('MsgSequence').as('msgSequence'),
-        knex.ref('StrTalker').as('strTalker'),
-        knex.ref('StrContent').as('strContent'),
-        knex.ref('BytesExtra').as('bytesExtra'),
-        knex.ref('CompressContent').as('compressContent'),
+        knex.ref('MSG.localId').as('localId'),
+        knex.ref('TalkerId.TalkerId').as('talkerId'),
+        knex.ref('MSG.MsgSvrID').as('msgSvrId'),
+        knex.ref('MSG.Type').as('type'),
+        knex.ref('MSG.SubType').as('subType'),
+        knex.ref('MSG.IsSender').as('isSender'),
+        knex.ref('MSG.CreateTime').as('createTime'),
+        knex.ref('MSG.Sequence').as('sequence'),
+        knex.ref('MSG.StatusEx').as('statusEx'),
+        knex.ref('MSG.FlagEx').as('flagEx'),
+        knex.ref('MSG.Status').as('status'),
+        knex.ref('MSG.MsgServerSeq').as('msgServerSeq'),
+        knex.ref('MSG.MsgSequence').as('msgSequence'),
+        knex.ref('MSG.StrTalker').as('strTalker'),
+        knex.ref('MSG.StrContent').as('strContent'),
+        knex.ref('MSG.BytesExtra').as('bytesExtra'),
+        knex.ref('MSG.CompressContent').as('compressContent'),
       )
-      .where('TalkerId', talkerId)
+      .join(
+        knex.raw(`(
+          SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) AS TalkerId, UsrName
+          FROM Name2ID
+        ) AS TalkerId`),
+        'MSG.TalkerId',
+        'TalkerId.TalkerId',
+      )
+      .where('TalkerId.UsrName', userName)
       .orderBy('CreateTime', 'desc')
 
     filter?.(sql)
