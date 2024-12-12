@@ -21,23 +21,28 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.mjs"
+      "default": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     },
     "./agent": {
       "types": "./dist/agent.d.ts",
-      "default": "./dist/agent.mjs"
+      "default": "./dist/agent.mjs",
+      "require": "./dist/index.cjs"
     },
     "./puppet": {
       "types": "./dist/puppet.d.ts",
-      "default": "./dist/puppet.mjs"
+      "default": "./dist/puppet.mjs",
+      "require": "./dist/index.cjs"
     },
     "./plugins": {
       "types": "./dist/plugins.d.ts",
-      "default": "./dist/plugins.mjs"
+      "default": "./dist/plugins.mjs",
+      "require": "./dist/index.cjs"
     },
     "./logger": {
       "types": "./dist/logger.d.ts",
-      "default": "./dist/logger.mjs"
+      "default": "./dist/logger.mjs",
+      "require": "./dist/index.cjs"
     }
   },
   "main": "dist/index.mjs",
