@@ -1,7 +1,7 @@
 {
   "name": "@wechatferry/nuxt",
   "type": "module",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "nuxt module for wechatferry",
   "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
