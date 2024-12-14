@@ -2,7 +2,7 @@ import { WechatferryPuppet } from 'wechatferry/puppet'
 import { WechatyBuilder } from 'wechaty'
 import { useLogger } from 'wechatferry/logger'
 
-const logger = useLogger('agent-example')
+const logger = useLogger('puppet-example')
 
 const puppet = new WechatferryPuppet()
 const bot = WechatyBuilder.build({ puppet })

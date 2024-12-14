@@ -1,5 +1,5 @@
 {
-  "name": "agent",
+  "name": "puppet",
   "type": "module",
   "version": "0.0.0",
   "private": true,
