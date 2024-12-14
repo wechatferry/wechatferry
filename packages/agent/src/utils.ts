@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { BytesExtra, RoomData, Wechatferry } from '@wechatferry/core'
-import LZ4 from 'lz4'
+import zlib from 'zlib'
 import type { WechatferryAgentOptions, WechatferryAgentUserOptions } from './types'
 
 export function resolvedWechatferryAgentOptions(options: WechatferryAgentUserOptions): WechatferryAgentOptions {
@@ -53,15 +53,13 @@ export function parseBytesExtra(bytesExtra: ReturnType<typeof BytesExtra.prototy
 
 export function lz4Decompress(data: Buffer, maxUncompressedSize: number) {
   let uncompressed = Buffer.alloc(maxUncompressedSize)
-  const uncompressedSize = LZ4.decodeBlock(data, uncompressed)
+  const uncompressedSize = zlib.inflateSync(data, { finishFlush: zlib.constants.Z_SYNC_FLUSH }).copy(uncompressed)
   uncompressed = uncompressed.slice(0, uncompressedSize)
   return uncompressed
 }
 
 export function lz4Compare(data: string | Buffer) {
   const input = Buffer.from(data)
-  let output = Buffer.alloc(LZ4.encodeBound(input.length))
-  const compressedSize = LZ4.encodeBlock(input, output)
-  output = output.slice(0, compressedSize)
+  const output = zlib.deflateSync(input, { level: zlib.constants.Z_BEST_COMPRESSION })
   return output
 }
