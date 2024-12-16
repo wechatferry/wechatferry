@@ -506,6 +506,7 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
    * 联系人信息
    *
    * @param wxid 联系人 wxid
+   * @deprecated https://github.com/wechatferry/wechatferry/issues/16
    */
   getContactInfo(wxid: string) {
     const req = new wcf.Request({
