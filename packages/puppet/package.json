@@ -15,7 +15,7 @@
     "wcferry",
     "robot"
   ],
-  "sideEffects": false,
+  "sideEffects":["./src/events/index.ts"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
