@@ -1,5 +1,4 @@
 import { EventEmitter } from 'node:events'
-import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { Socket } from '@rustup/nng'
 import type { FileBox, FileBoxInterface } from 'file-box'
@@ -44,11 +43,16 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
   start() {
     logger.debug('start')
     logger.start('Starting Wechatferry...')
-    this.catchErrors()
-    this.sdk.init()
-    this.socket.connect(this.sdk.cmdUrl)
-    this.sdk.on('message', msg => this.emit('message', msg.toObject() as WxMsg))
-    this.startRecvMessage()
+    try {
+      this.sdk.init()
+      this.socket.connect(this.sdk.cmdUrl)
+      this.sdk.on('message', msg => this.emit('message', msg.toObject() as WxMsg))
+      this.startRecvMessage()
+    } catch (error) {
+      logger.error('Error in start:', error)
+      this.stop()
+      return
+    }
     logger.success('Wechatferry started!')
   }
 
@@ -116,17 +120,14 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   /** 发送 WCF Function Request */
   send(req: wcf.Request): wcf.Response {
-    const func = wcf.Functions[req.func]
-    logger.debug('send', func)
-    const buf = this.socket.send(Buffer.from(req.serialize()))
-    this.emit('sended', func)
-    return wcf.Response.deserialize(buf)
-  }
-
-  private catchErrors() {
-    process.on('uncaughtException', this.stop.bind(this))
-    process.on('SIGINT', this.stop.bind(this))
-    process.on('exit', this.stop.bind(this))
+    if (this.socket.connected()) {
+      const func = wcf.Functions[req.func]
+      logger.debug('send', func)
+      const buf = this.socket.send(Buffer.from(req.serialize()))
+      this.emit('sended', func)
+      return wcf.Response.deserialize(buf)
+    }
+    throw new Error('Wechatferry is not connected')
   }
 
   // #endregion

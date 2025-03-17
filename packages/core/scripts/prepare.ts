@@ -1,3 +1,3 @@
-import { getDll } from './get-dll'
+import { downloadDll } from './download-dll'
 
-getDll()
+downloadDll()

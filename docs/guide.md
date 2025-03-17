@@ -15,7 +15,7 @@ wcf 官方提供了包含 Python、Java、Rust、Go 客户端的第一方实现�
 
 ## 开始前
 
-在开始之前，你需要确保使用的微信版本是受支持的，当前需要的版本是：[3.9.10.27](https://github.com/tom-snow/wechat-windows-versions/releases/tag/v3.9.10.27)
+在开始之前，你需要确保使用的微信版本是受支持的，当前需要的版本是：[3.9.12.17](https://github.com/tom-snow/wechat-windows-versions/releases/tag/v3.9.12.17)
 
 下载安装后，请**打开并登录**你的机器人账号，然后接着往下看~
 

@@ -38,6 +38,7 @@
     "VOIPINVITE",
     "VOIPMSG",
     "VOIPNOTIFY",
+    "wcferry",
     "wechatferry",
     "wxids",
     "wxmsg"

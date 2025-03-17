@@ -13,3 +13,4 @@ node_modules
 .eslintcache
 docs/.vitepress/dist
 docs/.vitepress/cache
+logs

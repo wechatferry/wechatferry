@@ -8,13 +8,14 @@ import { Socket } from '@rustup/nng'
 import { useLogger } from '@wechatferry/logger'
 import type { WechatferrySDKOptions, WechatferrySDKUserOptions } from './types'
 import { wcf } from './proto/wcf'
+import { wcferry } from '../package.json'
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url))
 
 export function resolvedWechatferrySDKOptions(options: WechatferrySDKUserOptions): WechatferrySDKOptions {
   return {
     debug: false,
-    sdkRoot: resolve(_dirname, '../sdk'),
+    sdkRoot: resolve(_dirname, `../sdk/v${wcferry.version}`),
     port: 10086,
     host: '127.0.0.1',
     ...options,

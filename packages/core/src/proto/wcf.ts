@@ -1972,7 +1972,7 @@ export namespace wcf {
             if (this.path.length)
                 writer.writeString(3, this.path);
             if (this.type != 0)
-                writer.writeInt32(4, this.type);
+                writer.writeUint64(4, this.type);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -1992,7 +1992,7 @@ export namespace wcf {
                         message.path = reader.readString();
                         break;
                     case 4:
-                        message.type = reader.readInt32();
+                        message.type = reader.readUint64();
                         break;
                     default: reader.skipField();
                 }
@@ -4157,6 +4157,424 @@ export namespace wcf {
         }
         static deserializeBinary(bytes: Uint8Array): ForwardMsg {
             return ForwardMsg.deserialize(bytes);
+        }
+    }
+    export class RoomData extends pb_1.Message {
+        #one_of_decls: number[][] = [[2], [4], [6]];
+        constructor(data?: any[] | ({
+            members?: RoomData.RoomMember[];
+            field_3?: number;
+            capacity?: number;
+            field_7?: number;
+            field_8?: number;
+            admins?: string[];
+        } & (({
+            field_2?: number;
+        }) | ({
+            field_4?: number;
+        }) | ({
+            field_6?: string;
+        })))) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [1, 9], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("members" in data && data.members != undefined) {
+                    this.members = data.members;
+                }
+                if ("field_2" in data && data.field_2 != undefined) {
+                    this.field_2 = data.field_2;
+                }
+                if ("field_3" in data && data.field_3 != undefined) {
+                    this.field_3 = data.field_3;
+                }
+                if ("field_4" in data && data.field_4 != undefined) {
+                    this.field_4 = data.field_4;
+                }
+                if ("capacity" in data && data.capacity != undefined) {
+                    this.capacity = data.capacity;
+                }
+                if ("field_6" in data && data.field_6 != undefined) {
+                    this.field_6 = data.field_6;
+                }
+                if ("field_7" in data && data.field_7 != undefined) {
+                    this.field_7 = data.field_7;
+                }
+                if ("field_8" in data && data.field_8 != undefined) {
+                    this.field_8 = data.field_8;
+                }
+                if ("admins" in data && data.admins != undefined) {
+                    this.admins = data.admins;
+                }
+            }
+        }
+        get members() {
+            return pb_1.Message.getRepeatedWrapperField(this, RoomData.RoomMember, 1) as RoomData.RoomMember[];
+        }
+        set members(value: RoomData.RoomMember[]) {
+            pb_1.Message.setRepeatedWrapperField(this, 1, value);
+        }
+        get field_2() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+        set field_2(value: number) {
+            pb_1.Message.setOneofField(this, 2, this.#one_of_decls[0], value);
+        }
+        get has_field_2() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        get field_3() {
+            return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+        }
+        set field_3(value: number) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get field_4() {
+            return pb_1.Message.getFieldWithDefault(this, 4, 0) as number;
+        }
+        set field_4(value: number) {
+            pb_1.Message.setOneofField(this, 4, this.#one_of_decls[1], value);
+        }
+        get has_field_4() {
+            return pb_1.Message.getField(this, 4) != null;
+        }
+        get capacity() {
+            return pb_1.Message.getFieldWithDefault(this, 5, 0) as number;
+        }
+        set capacity(value: number) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get field_6() {
+            return pb_1.Message.getFieldWithDefault(this, 6, "") as string;
+        }
+        set field_6(value: string) {
+            pb_1.Message.setOneofField(this, 6, this.#one_of_decls[2], value);
+        }
+        get has_field_6() {
+            return pb_1.Message.getField(this, 6) != null;
+        }
+        get field_7() {
+            return pb_1.Message.getFieldWithDefault(this, 7, 0) as number;
+        }
+        set field_7(value: number) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        get field_8() {
+            return pb_1.Message.getFieldWithDefault(this, 8, 0) as number;
+        }
+        set field_8(value: number) {
+            pb_1.Message.setField(this, 8, value);
+        }
+        get admins() {
+            return pb_1.Message.getFieldWithDefault(this, 9, []) as string[];
+        }
+        set admins(value: string[]) {
+            pb_1.Message.setField(this, 9, value);
+        }
+        get _field_2() {
+            const cases: {
+                [index: number]: "none" | "field_2";
+            } = {
+                0: "none",
+                2: "field_2"
+            };
+            return cases[pb_1.Message.computeOneofCase(this, [2])];
+        }
+        get _field_4() {
+            const cases: {
+                [index: number]: "none" | "field_4";
+            } = {
+                0: "none",
+                4: "field_4"
+            };
+            return cases[pb_1.Message.computeOneofCase(this, [4])];
+        }
+        get _field_6() {
+            const cases: {
+                [index: number]: "none" | "field_6";
+            } = {
+                0: "none",
+                6: "field_6"
+            };
+            return cases[pb_1.Message.computeOneofCase(this, [6])];
+        }
+        static fromObject(data: {
+            members?: ReturnType<typeof RoomData.RoomMember.prototype.toObject>[];
+            field_2?: number;
+            field_3?: number;
+            field_4?: number;
+            capacity?: number;
+            field_6?: string;
+            field_7?: number;
+            field_8?: number;
+            admins?: string[];
+        }): RoomData {
+            const message = new RoomData({});
+            if (data.members != null) {
+                message.members = data.members.map(item => RoomData.RoomMember.fromObject(item));
+            }
+            if (data.field_2 != null) {
+                message.field_2 = data.field_2;
+            }
+            if (data.field_3 != null) {
+                message.field_3 = data.field_3;
+            }
+            if (data.field_4 != null) {
+                message.field_4 = data.field_4;
+            }
+            if (data.capacity != null) {
+                message.capacity = data.capacity;
+            }
+            if (data.field_6 != null) {
+                message.field_6 = data.field_6;
+            }
+            if (data.field_7 != null) {
+                message.field_7 = data.field_7;
+            }
+            if (data.field_8 != null) {
+                message.field_8 = data.field_8;
+            }
+            if (data.admins != null) {
+                message.admins = data.admins;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                members?: ReturnType<typeof RoomData.RoomMember.prototype.toObject>[];
+                field_2?: number;
+                field_3?: number;
+                field_4?: number;
+                capacity?: number;
+                field_6?: string;
+                field_7?: number;
+                field_8?: number;
+                admins?: string[];
+            } = {};
+            if (this.members != null) {
+                data.members = this.members.map((item: RoomData.RoomMember) => item.toObject());
+            }
+            if (this.field_2 != null) {
+                data.field_2 = this.field_2;
+            }
+            if (this.field_3 != null) {
+                data.field_3 = this.field_3;
+            }
+            if (this.field_4 != null) {
+                data.field_4 = this.field_4;
+            }
+            if (this.capacity != null) {
+                data.capacity = this.capacity;
+            }
+            if (this.field_6 != null) {
+                data.field_6 = this.field_6;
+            }
+            if (this.field_7 != null) {
+                data.field_7 = this.field_7;
+            }
+            if (this.field_8 != null) {
+                data.field_8 = this.field_8;
+            }
+            if (this.admins != null) {
+                data.admins = this.admins;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.members.length)
+                writer.writeRepeatedMessage(1, this.members, (item: RoomData.RoomMember) => item.serialize(writer));
+            if (this.has_field_2)
+                writer.writeInt32(2, this.field_2);
+            if (this.field_3 != 0)
+                writer.writeInt32(3, this.field_3);
+            if (this.has_field_4)
+                writer.writeInt32(4, this.field_4);
+            if (this.capacity != 0)
+                writer.writeInt32(5, this.capacity);
+            if (this.has_field_6)
+                writer.writeString(6, this.field_6);
+            if (this.field_7 != 0)
+                writer.writeInt32(7, this.field_7);
+            if (this.field_8 != 0)
+                writer.writeInt32(8, this.field_8);
+            if (this.admins.length)
+                writer.writeRepeatedString(9, this.admins);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): RoomData {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new RoomData();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.members, () => pb_1.Message.addToRepeatedWrapperField(message, 1, RoomData.RoomMember.deserialize(reader), RoomData.RoomMember));
+                        break;
+                    case 2:
+                        message.field_2 = reader.readInt32();
+                        break;
+                    case 3:
+                        message.field_3 = reader.readInt32();
+                        break;
+                    case 4:
+                        message.field_4 = reader.readInt32();
+                        break;
+                    case 5:
+                        message.capacity = reader.readInt32();
+                        break;
+                    case 6:
+                        message.field_6 = reader.readString();
+                        break;
+                    case 7:
+                        message.field_7 = reader.readInt32();
+                        break;
+                    case 8:
+                        message.field_8 = reader.readInt32();
+                        break;
+                    case 9:
+                        pb_1.Message.addToRepeatedField(message, 9, reader.readString());
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): RoomData {
+            return RoomData.deserialize(bytes);
+        }
+    }
+    export namespace RoomData {
+        export class RoomMember extends pb_1.Message {
+            #one_of_decls: number[][] = [[2]];
+            constructor(data?: any[] | ({
+                wxid?: string;
+                state?: number;
+            } & (({
+                name?: string;
+            })))) {
+                super();
+                pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+                if (!Array.isArray(data) && typeof data == "object") {
+                    if ("wxid" in data && data.wxid != undefined) {
+                        this.wxid = data.wxid;
+                    }
+                    if ("name" in data && data.name != undefined) {
+                        this.name = data.name;
+                    }
+                    if ("state" in data && data.state != undefined) {
+                        this.state = data.state;
+                    }
+                }
+            }
+            get wxid() {
+                return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+            }
+            set wxid(value: string) {
+                pb_1.Message.setField(this, 1, value);
+            }
+            get name() {
+                return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+            }
+            set name(value: string) {
+                pb_1.Message.setOneofField(this, 2, this.#one_of_decls[0], value);
+            }
+            get has_name() {
+                return pb_1.Message.getField(this, 2) != null;
+            }
+            get state() {
+                return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+            }
+            set state(value: number) {
+                pb_1.Message.setField(this, 3, value);
+            }
+            get _name() {
+                const cases: {
+                    [index: number]: "none" | "name";
+                } = {
+                    0: "none",
+                    2: "name"
+                };
+                return cases[pb_1.Message.computeOneofCase(this, [2])];
+            }
+            static fromObject(data: {
+                wxid?: string;
+                name?: string;
+                state?: number;
+            }): RoomMember {
+                const message = new RoomMember({});
+                if (data.wxid != null) {
+                    message.wxid = data.wxid;
+                }
+                if (data.name != null) {
+                    message.name = data.name;
+                }
+                if (data.state != null) {
+                    message.state = data.state;
+                }
+                return message;
+            }
+            toObject() {
+                const data: {
+                    wxid?: string;
+                    name?: string;
+                    state?: number;
+                } = {};
+                if (this.wxid != null) {
+                    data.wxid = this.wxid;
+                }
+                if (this.name != null) {
+                    data.name = this.name;
+                }
+                if (this.state != null) {
+                    data.state = this.state;
+                }
+                return data;
+            }
+            serialize(): Uint8Array;
+            serialize(w: pb_1.BinaryWriter): void;
+            serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+                const writer = w || new pb_1.BinaryWriter();
+                if (this.wxid.length)
+                    writer.writeString(1, this.wxid);
+                if (this.has_name)
+                    writer.writeString(2, this.name);
+                if (this.state != 0)
+                    writer.writeInt32(3, this.state);
+                if (!w)
+                    return writer.getResultBuffer();
+            }
+            static deserialize(bytes: Uint8Array | pb_1.BinaryReader): RoomMember {
+                const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new RoomMember();
+                while (reader.nextField()) {
+                    if (reader.isEndGroup())
+                        break;
+                    switch (reader.getFieldNumber()) {
+                        case 1:
+                            message.wxid = reader.readString();
+                            break;
+                        case 2:
+                            message.name = reader.readString();
+                            break;
+                        case 3:
+                            message.state = reader.readInt32();
+                            break;
+                        default: reader.skipField();
+                    }
+                }
+                return message;
+            }
+            serializeBinary(): Uint8Array {
+                return this.serialize();
+            }
+            static deserializeBinary(bytes: Uint8Array): RoomMember {
+                return RoomMember.deserialize(bytes);
+            }
         }
     }
 }

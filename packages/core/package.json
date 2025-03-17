@@ -59,5 +59,8 @@
   "devDependencies": {
     "@terascope/fetch-github-release": "^1.0.0",
     "protoc-gen-ts": "^0.8.7"
+  },
+  "wcferry": {
+    "version": "39.4.2"
   }
 }
