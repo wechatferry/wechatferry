@@ -43,8 +43,8 @@
   },
   "dependencies": {
     "@wechatferry/nuxt": "workspace:*",
-    "bullmq": "^5.12.10",
-    "openai": "^4.56.0"
+    "bullmq": "^5.43.1",
+    "openai": "^4.87.3"
   },
   "devDependencies": {
     "nuxt": "catalog:"

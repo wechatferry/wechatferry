@@ -51,9 +51,9 @@
     "@rustup/nng": "^0.1.2",
     "@wechatferry/logger": "workspace:*",
     "file-box": "^1.4.15",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.0",
     "google-protobuf": "^3.21.4",
-    "koffi": "^2.9.0",
+    "koffi": "^2.10.1",
     "pathe": "^1.1.2"
   },
   "devDependencies": {

@@ -59,6 +59,7 @@ export function lz4Decompress(data: Buffer, maxUncompressedSize: number) {
 }
 
 export function lz4Compare(data: string | Buffer) {
+  // @ts-expect-error ignore
   const input = Buffer.from(data)
   let output = Buffer.alloc(LZ4.encodeBound(input.length))
   const compressedSize = LZ4.encodeBlock(input, output)
