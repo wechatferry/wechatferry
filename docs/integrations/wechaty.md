@@ -40,3 +40,19 @@ bot.on('message', (msg) => {
 ## 例子
 
 去 wechaty 上看去吧
+
+## 缓存管理
+
+https://github.com/wechatferry/wechatferry/issues/41
+
+现在支持自定义缓存管理，wcf 使用的是 hook 方案。不一定需要缓存，所以你可以自己实现从 agent 中直接查询
+
+::: code-group
+```ts [index.ts]
+import { CacheManager } from '@wechatferry/puppet'
+
+class MyCacheManager implements CacheManager {
+  // pass
+}
+```
+:::

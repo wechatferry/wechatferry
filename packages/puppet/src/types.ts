@@ -6,6 +6,7 @@ import type {
   RoomMember,
 } from 'wechaty-puppet/payloads'
 import type { WechatferryAgent } from '@wechatferry/agent'
+import { CacheManager } from './cache-manager'
 
 export interface PuppetRoom extends Room {
   announce: string
@@ -23,9 +24,9 @@ export type PuppetMessage = Message & {
 export interface PuppetWcferryUserOptions {
   agent?: WechatferryAgent
   /**
-   * unstorage 实例，用于缓存数据
+   * 自定义缓存管理器
    */
-  storage?: Storage
+  cacheManager?: CacheManager
 }
 
 export interface PuppetWcferryOptions extends Required<PuppetWcferryUserOptions> { }

@@ -8,7 +8,7 @@ import { FileBox, type FileBoxInterface } from 'file-box'
 import localPackageJson from '../package.json'
 import type { PuppetContact, PuppetWcferryOptions, PuppetWcferryUserOptions } from './types'
 import { getMentionText, isRoomId, mentionTextParser } from './utils'
-import { CacheManager } from './cache-manager'
+import { UnstorageCacheManager, CacheManager } from './cache-manager'
 import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
 import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty, wechatyContactToWechatferry } from './schema-mapper'
 import { EventType, parseEvent } from './events'
@@ -16,7 +16,7 @@ import { EventType, parseEvent } from './events'
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {
   return {
     agent: new WechatferryAgent(),
-    storage: createStorage(),
+    cacheManager: new UnstorageCacheManager(createStorage()),
     ...userOptions,
   }
 }
@@ -29,9 +29,9 @@ export class WechatferryPuppet extends PUPPET.Puppet {
 
   constructor(options: PuppetWcferryUserOptions = {}) {
     super()
-    const { agent, storage } = resolvePuppetWcferryOptions(options)
+    const { agent, cacheManager } = resolvePuppetWcferryOptions(options)
     this.agent = agent
-    this.cacheManager = new CacheManager(storage)
+    this.cacheManager = cacheManager
   }
 
   override name() { return `${localPackageJson.name}<${super.name()}>` }
