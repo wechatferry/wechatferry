@@ -5,7 +5,11 @@
             "command": "node",
             "args": [
                 "${workspaceFolder}/packages/mcp/bin/mcp-server-wechat.js"
-            ]
+            ],
+            "env": {
+                "WECHATY_LOG": "silent",
+                "CONSOLA_LEVEL": "-999",
+            }, 
         }
     }
 }

@@ -196,7 +196,6 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
   /**
    * 用户信息
    *
-   * @deprecated Not supported
    */
   getUserInfo() {
     const { ui } = this.send(new wcf.Request({
@@ -286,8 +285,6 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   /**
    * 发送 XML 消息
-   *
-   * @deprecated Not supported
    */
   sendXml(
     xml: Omit<ReturnType<wcf.XmlMsg['toObject']>, 'receiver'>,
@@ -421,7 +418,6 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
 
   /**
    * 通过好友申请
-   * @deprecated Not supported
    * @param v3 加密用户名 (好友申请消息里 v3 开头的字符串)
    * @param v4 Ticket (好友申请消息里 v4 开头的字符串)
    * @param scene 申请方式 (好友申请消息里的 scene); 为了兼容旧接口，默认为扫码添加 (30)

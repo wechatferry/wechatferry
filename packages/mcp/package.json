@@ -48,7 +48,7 @@
     "build": "unbuild",
     "dev": "unbuild --stub",
     "mcp-server-wechat": "node bin/mcp-server-wechat.js",
-    "inspector": "pnpx @modelcontextprotocol/inspector bin/mcp-server-wechat.js"
+    "inspector": "pnpx @modelcontextprotocol/inspector -e WECHATY_LOG=silent -e CONSOLA_LEVEL=-999 bin/mcp-server-wechat.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
