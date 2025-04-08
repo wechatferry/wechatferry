@@ -61,6 +61,6 @@
     "protoc-gen-ts": "^0.8.7"
   },
   "wcferry": {
-    "version": "39.4.2"
+    "version": "39.4.4"
   }
 }
