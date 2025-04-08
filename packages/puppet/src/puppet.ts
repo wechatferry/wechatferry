@@ -65,8 +65,8 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   override async onStop(): Promise<void> {
     log.verbose('WechatferryPuppet', 'onStop()')
     this.stopPuppetHeart()
-    this.agent.stop()
     this.agent.removeAllListeners()
+    this.agent.stop()
   }
 
   override async ding(data?: string) {

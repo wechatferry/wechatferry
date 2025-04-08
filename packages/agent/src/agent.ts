@@ -62,7 +62,7 @@ export class WechatferryAgent extends EventEmitter<WechatferryAgentEventMap> {
     }
     this.wcf.stop()
 
-    if (error) {
+    if (error && error instanceof Error) {
       this.emit('error', error)
     }
     logger.success('WechatferryAgent stopped')

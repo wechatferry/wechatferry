@@ -42,7 +42,7 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
    */
   start() {
     logger.debug('start')
-    logger.start('Starting Wechatferry...')
+    logger.start('Starting WechatferryCore...')
     try {
       this.sdk.init()
       this.socket.connect(this.sdk.cmdUrl)
@@ -53,7 +53,7 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
       this.stop()
       return
     }
-    logger.success('Wechatferry started!')
+    logger.success('WechatferryCore started!')
   }
 
   /**
@@ -61,11 +61,11 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
    */
   stop() {
     logger.debug('stop')
-    logger.start('Stopping Wechatferry...')
+    logger.start('Stopping WechatferryCore...')
     this.stopRecvMessage()
     this.socket.close()
     this.sdk.destroy()
-    logger.success('Wechatferry stopped!')
+    logger.success('WechatferryCore stopped!')
   }
 
   /**
@@ -127,7 +127,7 @@ export class Wechatferry extends EventEmitter<WechatferryEventMap> {
       this.emit('sended', func)
       return wcf.Response.deserialize(buf)
     }
-    throw new Error('Wechatferry is not connected')
+    throw new Error('WechatferryCore is not connected')
   }
 
   // #endregion

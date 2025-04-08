@@ -1,0 +1,11 @@
+{
+    "servers": {
+        "Wechat": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/packages/mcp/bin/mcp-server-wechat.js"
+            ]
+        }
+    }
+}
