@@ -45,6 +45,7 @@
     "@wechatferry/core": "workspace:*",
     "file-box": "^1.4.15",
     "knex": "^3.1.0",
+    "p-retry": "^6.2.1",
     "unstorage": "^1.15.0",
     "wechaty-puppet": "^1.20.2",
     "xml2js": "^0.6.2"

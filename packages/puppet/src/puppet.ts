@@ -12,6 +12,7 @@ import { UnstorageCacheManager, CacheManager } from './cache-manager'
 import { parseAppmsgMessagePayload, parseContactCardMessagePayload, parseEmotionMessagePayload, parseMiniProgramMessagePayload, parseTimelineMessagePayload } from './messages'
 import { wechatferryContactToWechaty, wechatferryDBMessageToEventMessage, wechatferryMessageToWechaty, wechatferryRoomMemberToWechaty, wechatferryRoomToWechaty, wechatyContactToWechatferry } from './schema-mapper'
 import { EventType, parseEvent } from './events'
+import pRetry from 'p-retry';
 
 export function resolvePuppetWcferryOptions(userOptions: PuppetWcferryUserOptions): PuppetWcferryOptions {
   return {
@@ -26,6 +27,7 @@ export class WechatferryPuppet extends PUPPET.Puppet {
   agent: WechatferryAgent
   private cacheManager: CacheManager
   private heartBeatTimer?: ReturnType<typeof setTimeout>
+  private _authQrCode: string = ""
 
   constructor(options: PuppetWcferryUserOptions = {}) {
     super()
@@ -73,6 +75,17 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     log.silly('WechatferryPuppet', 'ding(%s)', data || '')
     await sleep(1000)
     this.emit('dong', { data: data || '' })
+  }
+
+  // @ts-expect-error ignore
+  override get authQrCode() {
+    if (!this._authQrCode) {
+      this._authQrCode = this.agent.wcf.refreshQrcode()
+    }
+    return this._authQrCode;  
+  }
+  override set authQrCode(value: string) {
+    this._authQrCode = this.agent.wcf.refreshQrcode()
   }
 
   async onMessage(message: WechatferryAgentEventMessage) {
@@ -885,33 +898,51 @@ export class WechatferryPuppet extends PUPPET.Puppet {
     return this.contactRawPayloadParser(contact)
   }
 
-  // TODO: need better way to set temp contact
   async updateContactCache(contactId: string, _contact?: PuppetContact) {
     log.verbose('WechatferryPuppet', `updateContactCache(${contactId})`)
-    let contact: WechatferryAgentContact | null = null
-    if (_contact) {
-      contact = await wechatyContactToWechatferry(_contact)
+    // TODO: need better way to set temp contact
+    const run = async () => {
+      let contact: WechatferryAgentContact | null = null
+      if (_contact) {
+        contact = await wechatyContactToWechatferry(_contact)
+      }
+      else {
+        contact = this.agent.getContactInfo(contactId) ?? null
+      }
+      if (!contact) {
+        return null
+      }
+      await this.cacheManager.setContact(contactId, contact)
+      this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+      return contact
     }
-    else {
-      contact = this.agent.getContactInfo(contactId) ?? null
-    }
-    if (!contact) {
-      return null
-    }
-    await this.cacheManager.setContact(contactId, contact)
-    this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
-    return contact
-  }
 
+    return pRetry(run, {
+      retries: 3
+    })
+  }
+  /**
+   * 
+   * 更新群聊缓存
+   * @param roomId 群聊 id
+   */
   private async updateRoomCache(roomId: string) {
     log.verbose('WechatferryPuppet', `updateRoomCache(${roomId})`)
-    const room = this.agent.getChatRoomInfo(roomId)
-    if (!room) {
-      return null
+    const run = async () => {
+      const room = this.agent.getChatRoomInfo(roomId)
+      if (!room) {
+        throw new Error(
+          `updateRoomCache(${roomId}) called failed: Room not found.`,
+        )
+      }
+      await this.cacheManager.setRoom(roomId, room)
+      this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
+      return room
     }
-    await this.cacheManager.setRoom(roomId, room)
-    this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
-    return room
+
+    return pRetry(run, {
+      retries: 3
+    })
   }
 
   /**
@@ -923,25 +954,42 @@ export class WechatferryPuppet extends PUPPET.Puppet {
    */
   public async updateRoomMemberListCache(roomId: string) {
     log.verbose('WechatferryPuppet', `updateRoomMemberListCache(${roomId})`)
-    const members = this.agent.getChatRoomMembers(roomId)
-    if (!members) {
-      return null
+    const run = async () => {
+      const members = this.agent.getChatRoomMembers(roomId)
+      if (!members) {
+        return null
+      }
+      await this.cacheManager.setRoomMemberList(roomId, members)
+      return members
     }
-    await this.cacheManager.setRoomMemberList(roomId, members)
-    return members
+    return pRetry(run, {
+      retries: 3
+    })
   }
 
+  /**
+   * 更新群聊成员缓存
+   * @param roomId 群聊 id
+   * @param contactId 联系人 id
+   */
   private async updateRoomMemberCache(roomId: string, contactId: string) {
     log.verbose('WechatferryPuppet', `updateRoomMemberCache(${roomId}, ${contactId})`)
-    const { displayNameMap = {} } = await this.roomRawPayload(roomId) ?? {}
-    const [member] = this.agent.getChatRoomMembersByMemberIdList([contactId], displayNameMap)
-    if (!member) {
-      await this.cacheManager.deleteRoomMember(roomId, contactId)
-      return null
+
+    const run = async () => {
+      const { displayNameMap = {} } = await this.roomRawPayload(roomId) ?? {}
+      const [member] = this.agent.getChatRoomMembersByMemberIdList([contactId], displayNameMap)
+      if (!member) {
+        await this.cacheManager.deleteRoomMember(roomId, contactId)
+        return null
+      }
+      this.dirtyPayload(PUPPET.types.Payload.RoomMember, member.userName)
+      await this.cacheManager.setRoomMember(roomId, contactId, member)
+      return member
     }
-    this.dirtyPayload(PUPPET.types.Payload.RoomMember, member.userName)
-    await this.cacheManager.setRoomMember(roomId, contactId, member)
-    return member
+
+    return pRetry(run, {
+      retries: 3
+    })
   }
 
   private async loadContactList() {
