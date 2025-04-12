@@ -10,17 +10,16 @@ process.on('SIGINT', async () => {
 });
 
 export async function main() {
-
+    const puppet = new WechatferryPuppet()
     const wechaty = WechatyBuilder.build({
-        puppet: new WechatferryPuppet(),
+        puppet,
     })
+    await wechaty.start()
+    
     const server = new WechatFerryServer({
         wechaty
-    });
-
-    await wechaty.start()
+    });    
     await wechaty.ready()
-
     const transport = new StdioServerTransport();
     await server.connect(transport);
 }
