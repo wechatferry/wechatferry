@@ -13,9 +13,10 @@ function rewriteMsgContent(message: string) {
 
 export async function wechatferryMessageToWechaty(puppet: PUPPET.Puppet, message: WechatferryAgentEventMessage): Promise<PuppetMessage> {
   let text = message.content
+  const selfId = puppet.selfId()
   const roomId = message.is_group ? message.roomid : ''
-  const talkerId = message.sender
-  const listenerId = message.sender
+  const fromId = message.sender
+  const toId = message.is_self ? message.roomid : selfId
 
   if (roomId) {
     text = rewriteMsgContent(text)
@@ -24,8 +25,8 @@ export async function wechatferryMessageToWechaty(puppet: PUPPET.Puppet, message
   const ret: PuppetMessage = {
     id: message.id.toString(),
     text,
-    talkerId,
-    listenerId: roomId ? '' : listenerId,
+    talkerId: fromId,
+    listenerId: roomId ? '' : toId,
     timestamp: Date.now(),
     roomId,
     isRefer: false,
@@ -42,14 +43,20 @@ export function wechatferryDBMessageToWechaty(puppet: PUPPET.Puppet, message: We
 
 export function wechatferryDBMessageToEventMessage(message: WechatferryAgentDBMessage) {
   const isRoom = isRoomId(message.strTalker)
+  const isSelf = message.isSender === 1
+  // 若是群聊，则发送人是 message.talkerWxid
+  // 若是私聊，且是自己，则发送人是 message.talkerWxid，否则发送人是 message.strTalker
+  const senderId = isRoom ? message.talkerWxid
+    : (isSelf ? message.talkerWxid : message.strTalker)
+
   return {
     content: message.strContent,
     extra: message.parsedBytesExtra.extra,
     id: `${message.msgSvrId}`,
     is_group: isRoom,
-    is_self: message.isSender === 1,
-    roomid: isRoom ? message.strTalker : '',
-    sender: `${message.talkerWxid}`,
+    is_self: isSelf,
+    roomid: message.strTalker,
+    sender: senderId,
     ts: message.createTime,
     type: message.type,
     xml: message.parsedBytesExtra.xml,
