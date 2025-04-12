@@ -10,5 +10,7 @@ export async function downloadDll(version = `v${wcferry.version}`) {
   const sdk = resolve(__dirname, `../sdk/${version}/sdk.dll`)
   if (fse.existsSync(sdk))
     return
-  return downloadRelease('lich0821', 'WeChatFerry', resolve(__dirname, `../sdk/${version}`), undefined, r => r.name === `${version}.zip`)
+  const sdkDir = resolve(__dirname, `../sdk/${version}`)
+  await fse.ensureDir(sdkDir)
+  return downloadRelease('lich0821', 'WeChatFerry', sdkDir, undefined, r => r.name === `${version}.zip`)
 }
