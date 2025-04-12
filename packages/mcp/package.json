@@ -1,7 +1,7 @@
 {
   "name": "@wechatferry/mcp",
   "type": "module",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "A mcp server impl of wcferry",
   "author": "mrrhq <sanhua@himrr.com>",
   "license": "MIT",
