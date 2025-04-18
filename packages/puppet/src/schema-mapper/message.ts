@@ -13,7 +13,7 @@ function rewriteMsgContent(message: string) {
 
 export async function wechatferryMessageToWechaty(puppet: PUPPET.Puppet, message: WechatferryAgentEventMessage): Promise<PuppetMessage> {
   let text = message.content
-  const selfId = puppet.selfId()
+  const selfId = puppet.currentUserId
   const roomId = message.is_group ? message.roomid : ''
   const fromId = message.sender
   const toId = message.is_self ? message.roomid : selfId
