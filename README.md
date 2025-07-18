@@ -74,10 +74,6 @@ wechatferry 之所以成为可能，得益于以下项目的灵感:
 - [node-wcferry](https://github.com/stkevintan/node-wcferry)
 - [wechaty](https://github.com/wechaty/wechaty)
 
-## 赞助
-
-[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
-
 ## License
 
 基于 MIT 协议 为 💖 发电
